@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Учёт заказов</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #16121f;
+    --card: #221b30;
+    --card2: #2c2340;
+    --border: #3a2f52;
+    --accent: #a855f7;
+    --accent2: #c084fc;
+    --pink: #ec4899;
+    --text: #f0eaff;
+    --text2: #b8a9d9;
+    --text3: #7a6b9e;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --orange: #fb923c;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 4px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #a855f7, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--text3);
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+
+  .form {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .form h2 {
+    font-size: 15px;
+    color: var(--accent2);
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+
+  input {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 11px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    margin-bottom: 10px;
+    font-family: inherit;
+  }
+  input::placeholder { color: var(--text3); }
+  input:focus { outline: none; border-color: var(--accent); }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .row input { margin-bottom: 10px; }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    color: white;
+    box-shadow: 0 4px 14px rgba(168,85,247,.3);
+    transition: opacity .15s;
+  }
+  button:active { opacity: .85; }
+
+  .person {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 5px solid var(--accent);
+  }
+  .person-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+  .person-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .person-name small {
+    font-size: 12px;
+    color: var(--text3);
+    font-weight: 600;
+    display: block;
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+  .btn-del {
+    width: auto;
+    padding: 6px 12px;
+    font-size: 12px;
+    background: rgba(239,68,68,.15);
+    color: #f87171;
+    box-shadow: none;
+    border: 1px solid rgba(239,68,68,.3);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .stat {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px;
+    text-align: center;
+  }
+  .stat .val {
+    font-size: 17px;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 3px;
+    word-break: break-all;
+  }
+  .stat .lbl {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    font-weight: 700;
+  }
+  .stat.weight .val { color: var(--blue); }
+  .stat.yuan .val { color: var(--yellow); }
+  .stat.rate .val { color: var(--accent2); }
+  .stat.goods .val { color: var(--green); }
+  .stat.deliv .val { color: var(--orange); }
+  .stat.kgrate .val { color: var(--orange); }
+
+  .person-total {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    margin-top: 4px;
+    box-shadow: 0 4px 14px rgba(168,85,247,.3);
+  }
+  .person-total .lbl {
+    font-size: 10px;
+    color: rgba(255,255,255,.85);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .person-total .val {
+    font-size: 24px;
+    font-weight: 900;
+    color: white;
+  }
+
+  .total {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 16px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 20px rgba(168,85,247,.3);
+  }
+  .total .lbl {
+    font-size: 11px;
+    color: rgba(255,255,255,.85);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .total .val {
+    font-size: 28px;
+    font-weight: 900;
+    color: white;
+    margin: 4px 0;
+  }
+  .total .sub {
+    font-size: 13px;
+    color: rgba(255,255,255,.9);
+    margin-top: 6px;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--text3);
+    padding: 40px 20px;
+    font-size: 14px;
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+  }
+</style>
+</head>
+<body>
+
+<h1>💜 Учёт заказов</h1>
+<div class="subtitle">Товар + Доставка по весу</div>
+
+<div class="total">
+  <div class="lbl">Общая сумма</div>
+  <div class="val" id="grandTotal">0.00 BYN</div>
+  <div class="sub" id="grandSub">¥ 0.00 · 0.00 кг</div>
+</div>
+
+<div class="form">
+  <h2>➕ Добавить человека</h2>
+  <input id="f-name" placeholder="Имя" autocomplete="off">
+  <input id="f-weight" placeholder="Вес, кг" type="number" step="0.01" inputmode="decimal">
+  <input id="f-kgrate" placeholder="Курс за 1 кг (например 24)" type="number" step="0.01" inputmode="decimal">
+  <input id="f-yuan" placeholder="Сумма в юанях ¥" type="number" step="0.01" inputmode="decimal">
+  <input id="f-rate" placeholder="Курс юаня к BYN" type="number" step="0.0001" inputmode="decimal">
+  <button onclick="addPerson()">💾 Сохранить</button>
+</div>
+
+<div id="list"></div>
+
+<script>
+const KEY = 'orders_v2';
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+  catch { return []; }
+}
+function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
+
+function addPerson() {
+  const name   = document.getElementById('f-name').value.trim();
+  const weight = parseFloat(document.getElementById('f-weight').value) || 0;
+  const kgrate = parseFloat(document.getElementById('f-kgrate').value) || 0;
+  const yuan   = parseFloat(document.getElementById('f-yuan').value) || 0;
+  const rate   = parseFloat(document.getElementById('f-rate').value) || 0;
+
+  if (!name)     { alert('Введите имя'); return; }
+  if (rate <= 0) { alert('Введите курс юаня больше нуля'); return; }
+  if (kgrate < 0){ alert('Курс за кг не может быть отрицательным'); return; }
+
+  const goodsByn  = yuan * rate;
+  const delivByn  = weight * kgrate;
+  const totalByn  = goodsByn + delivByn;
+
+  const data = load();
+  data.push({
+    id: Date.now(),
+    name, weight, kgrate, yuan, rate,
+    goodsByn, delivByn, totalByn
+  });
+  save(data);
+
+  ['f-name','f-weight','f-kgrate','f-yuan','f-rate'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+
+  render();
+}
+
+function del(id) {
+  if (!confirm('Удалить запись?')) return;
+  const data = load().filter(p => p.id !== id);
+  save(data);
+  render();
+}
+
+function render() {
+  const data = load();
+  const el = document.getElementById('list');
+
+  if (!data.length) {
+    el.innerHTML = '<div class="empty">Пока нет записей.<br>Добавь первого человека выше ⬆️</div>';
+    document.getElementById('grandTotal').textContent = '0.00 BYN';
+    document.getElementById('grandSub').textContent = '¥ 0.00 · 0.00 кг';
+    return;
+  }
+
+  let totalByn = 0;
+  let totalYuan = 0;
+  let totalWeight = 0;
+
+  el.innerHTML = data.map(p => {
+    totalByn    += p.totalByn;
+    totalYuan   += p.yuan;
+    totalWeight += p.weight;
+
+    return `<div class="person">
+      <div class="person-header">
+        <div class="person-name">
+          👤 ${escapeHtml(p.name)}
+          <small>курс ¥ = ${p.rate} · курс кг = ${p.kgrate}</small>
+        </div>
+        <button class="btn-del" onclick="del(${p.id})">🗑</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat weight">
+          <span class="val">${p.weight.toFixed(2)} кг</span>
+          <span class="lbl">Вес</span>
+        </div>
+        <div class="stat yuan">
+          <span class="val">¥${p.yuan.toFixed(2)}</span>
+          <span class="lbl">Юани</span>
+        </div>
+        <div class="stat goods">
+          <span class="val">${p.goodsByn.toFixed(2)}</span>
+          <span class="lbl">Товар BYN</span>
+        </div>
+        <div class="stat deliv">
+          <span class="val">${p.delivByn.toFixed(2)}</span>
+          <span class="lbl">Доставка BYN</span>
+        </div>
+      </div>
+
+      <div class="person-total">
+        <div class="lbl">Итого к оплате</div>
+        <div class="val">${p.totalByn.toFixed(2)} BYN</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('grandTotal').textContent = totalByn.toFixed(2) + ' BYN';
+  document.getElementById('grandSub').textContent =
+    '¥ ' + totalYuan.toFixed(2) + ' · ' + totalWeight.toFixed(2) + ' кг';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+render();
+</script>
+
+</body>
+</html>
