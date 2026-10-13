@@ -1,881 +1,34 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Учёт заказов</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-  :root {
-    --bg: #16121f;
-    --card: #221b30;
-    --card2: #2c2340;
-    --border: #3a2f52;
-    --accent: #a855f7;
-    --accent2: #c084fc;
-    --pink: #ec4899;
-    --text: #f0eaff;
-    --text2: #b8a9d9;
-    --text3: #7a6b9e;
-    --green: #4ade80;
-    --yellow: #fbbf24;
-    --blue: #60a5fa;
-    --orange: #fb923c;
-    --red: #f87171;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding-bottom: 80px;
-  }
-
-  .container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 16px;
-  }
-
-  h1 {
-    font-size: 22px;
-    text-align: center;
-    margin-bottom: 4px;
-    font-weight: 800;
-    background: linear-gradient(90deg, #a855f7, #ec4899);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .subtitle {
-    text-align: center;
-    color: var(--text3);
-    font-size: 13px;
-    margin-bottom: 18px;
-  }
-
-  .screen { display: none; }
-  .screen.active { display: block; animation: fade .2s ease; }
-  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-  /* ============ НИЖНЕЕ МЕНЮ ============ */
-  .menu {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--card);
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-around;
-    padding: 8px 4px 12px;
-    z-index: 100;
-    backdrop-filter: blur(10px);
-  }
-  .menu-item {
-    flex: 1;
-    text-align: center;
-    padding: 8px 2px;
-    cursor: pointer;
-    color: var(--text3);
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 10px;
-    transition: all .2s;
-    user-select: none;
-  }
-  .menu-item .ico {
-    font-size: 21px;
-    display: block;
-    margin-bottom: 3px;
-    filter: grayscale(1) opacity(.5);
-    transition: all .2s;
-  }
-  .menu-item.active {
-    color: var(--accent2);
-    background: rgba(168,85,247,.12);
-  }
-  .menu-item.active .ico {
-    filter: none;
-    transform: scale(1.15);
-  }
-
-  /* ============ ФОРМЫ ============ */
-  .form, .edit-form {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  .form h2, .edit-form h2 {
-    font-size: 15px;
-    color: var(--accent2);
-    margin-bottom: 12px;
-    font-weight: 700;
-  }
-
-  input, select {
-    width: 100%;
-    padding: 13px 14px;
-    border-radius: 11px;
-    font-size: 15px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
-    margin-bottom: 10px;
-    font-family: inherit;
-  }
-  input::placeholder { color: var(--text3); }
-  input:focus { outline: none; border-color: var(--accent); }
-
-  button {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-    background: linear-gradient(135deg, #a855f7, #7c3aed);
-    color: white;
-    box-shadow: 0 4px 14px rgba(168,85,247,.3);
-    transition: opacity .15s;
-  }
-  button:active { opacity: .85; }
-  button.ghost {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text2);
-    box-shadow: none;
-  }
-  button.danger {
-    background: linear-gradient(135deg, #ef4444, #b91c1c);
-    box-shadow: 0 4px 14px rgba(239,68,68,.3);
-  }
-  button.green {
-    background: linear-gradient(135deg, #22c55e, #15803d);
-    box-shadow: 0 4px 14px rgba(34,197,94,.3);
-  }
-
-  .total {
-    background: linear-gradient(135deg, #7c3aed, #a855f7);
-    border-radius: 16px;
-    padding: 18px;
-    text-align: center;
-    margin-bottom: 16px;
-    box-shadow: 0 6px 20px rgba(168,85,247,.3);
-  }
-  .total .lbl {
-    font-size: 11px;
-    color: rgba(255,255,255,.85);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .total .val {
-    font-size: 28px;
-    font-weight: 900;
-    color: white;
-    margin: 4px 0;
-  }
-  .total .sub {
-    font-size: 13px;
-    color: rgba(255,255,255,.9);
-    margin-top: 6px;
-  }
-
-  /* ============ СПИСОК ЛЮДЕЙ ============ */
-  .people-list { display: flex; flex-direction: column; gap: 10px; }
-
-  .person-row {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: all .15s;
-    border-left: 4px solid var(--accent);
-  }
-  .person-row:active { background: var(--card2); transform: scale(.98); }
-  .person-row.paid { border-left-color: var(--green); }
-  .person-row.debt { border-left-color: var(--red); }
-  .person-row.partial { border-left-color: var(--yellow); }
-
-  .person-row .avatar {
-    font-size: 32px;
-    width: 50px; height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg);
-    border-radius: 50%;
-    flex-shrink: 0;
-    border: 1px solid var(--border);
-    position: relative;
-  }
-  .person-row .avatar .status-dot {
-    position: absolute;
-    bottom: 0; right: 0;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    border: 2px solid var(--card);
-  }
-  .person-row .avatar .status-dot.paid { background: var(--green); }
-  .person-row .avatar .status-dot.debt { background: var(--red); }
-  .person-row .avatar .status-dot.partial { background: var(--yellow); }
-
-  .person-row .info { flex: 1; min-width: 0; }
-  .person-row .name {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .person-row .sub { font-size: 12px; color: var(--text3); }
-  .person-row .amount { text-align: right; flex-shrink: 0; }
-  .person-row .amount .byn {
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--green);
-  }
-  .person-row .amount .y {
-    font-size: 11px;
-    color: var(--yellow);
-    margin-top: 2px;
-  }
-
-  /* ============ ПРОФИЛЬ ЧЕЛОВЕКА ============ */
-  .back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 14px;
-    margin-bottom: 14px;
-    width: auto;
-    box-shadow: none;
-  }
-  .back-btn:active { opacity: .7; }
-
-  .profile-head {
-    background: linear-gradient(135deg, #2f2547, #251d3a);
-    border-radius: 16px;
-    padding: 20px;
-    text-align: center;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-  }
-  .profile-head .avatar-big { font-size: 56px; margin-bottom: 8px; }
-  .profile-head .name {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--text);
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .stat {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    text-align: center;
-  }
-  .stat .val {
-    font-size: 20px;
-    font-weight: 800;
-    display: block;
-    margin-bottom: 4px;
-    word-break: break-all;
-  }
-  .stat .lbl {
-    font-size: 10px;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    font-weight: 700;
-  }
-  .stat.weight .val { color: var(--blue); }
-  .stat.yuan .val { color: var(--yellow); }
-  .stat.rate .val { color: var(--accent2); }
-  .stat.goods .val { color: var(--green); }
-  .stat.deliv .val { color: var(--orange); }
-  .stat.kg .val { color: var(--orange); }
-
-  .total-big {
-    background: linear-gradient(135deg, #7c3aed, #a855f7);
-    border-radius: 14px;
-    padding: 18px;
-    text-align: center;
-    margin-bottom: 16px;
-    box-shadow: 0 6px 20px rgba(168,85,247,.3);
-  }
-  .total-big .lbl {
-    font-size: 11px;
-    color: rgba(255,255,255,.85);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-  .total-big .val {
-    font-size: 28px;
-    font-weight: 900;
-    color: white;
-  }
-
-  /* ============ БЛОК ОПЛАТЫ ============ */
-  .pay-block {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  .pay-block h2 {
-    font-size: 15px;
-    color: var(--accent2);
-    margin-bottom: 12px;
-    font-weight: 700;
-  }
-
-  .pay-status {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px;
-    border-radius: 12px;
-    margin-bottom: 12px;
-    font-weight: 800;
-    font-size: 16px;
-  }
-  .pay-status.paid {
-    background: rgba(74,222,128,.15);
-    color: var(--green);
-    border: 1px solid rgba(74,222,128,.3);
-  }
-  .pay-status.debt {
-    background: rgba(248,113,113,.15);
-    color: var(--red);
-    border: 1px solid rgba(248,113,113,.3);
-  }
-  .pay-status.partial {
-    background: rgba(251,191,36,.15);
-    color: var(--yellow);
-    border: 1px solid rgba(251,191,36,.3);
-  }
-
-  .pay-numbers {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-  .pay-num {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    text-align: center;
-  }
-  .pay-num .val {
-    font-size: 18px;
-    font-weight: 800;
-    display: block;
-    margin-bottom: 3px;
-  }
-  .pay-num .lbl {
-    font-size: 10px;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    font-weight: 700;
-  }
-  .pay-num.paid .val { color: var(--green); }
-  .pay-num.remain .val { color: var(--red); }
-
-  .pay-quick {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-  .pay-quick button {
-    font-size: 13px;
-    padding: 10px;
-  }
-
-  /* ============ ФОРМА РЕДАКТИРОВАНИЯ ============ */
-  .field-label {
-    font-size: 12px;
-    color: var(--text3);
-    font-weight: 600;
-    margin-bottom: 5px;
-    margin-top: 4px;
-    display: block;
-  }
-  .row2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .row2 input { margin-bottom: 10px; }
-
-  .avatar-picker {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-  .avatar-opt {
-    font-size: 26px;
-    width: 48px; height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg);
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .avatar-opt:hover { border-color: var(--accent); }
-  .avatar-opt.selected {
-    border-color: var(--accent);
-    background: rgba(168,85,247,.15);
-    transform: scale(1.05);
-  }
-
-  .empty {
-    text-align: center;
-    color: var(--text3);
-    padding: 40px 20px;
-    font-size: 14px;
-    background: var(--card);
-    border: 1px dashed var(--border);
-    border-radius: 16px;
-  }
-
-  .formula {
-    text-align: center;
-    color: var(--text3);
-    font-size: 12px;
-    margin-top: 6px;
-  }
-
-  /* ============ СПИСОК ОПЛАТ ============ */
-  .pay-row {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border-left: 4px solid var(--border);
-    cursor: pointer;
-  }
-  .pay-row.paid { border-left-color: var(--green); }
-  .pay-row.debt { border-left-color: var(--red); }
-  .pay-row.partial { border-left-color: var(--yellow); }
-
-  .pay-row .avatar {
-    font-size: 30px;
-    width: 48px; height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg);
-    border-radius: 50%;
-    flex-shrink: 0;
-    border: 1px solid var(--border);
-  }
-  .pay-row .info { flex: 1; min-width: 0; }
-  .pay-row .name {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .pay-row .status {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-  }
-  .pay-row.paid .status { color: var(--green); }
-  .pay-row.debt .status { color: var(--red); }
-  .pay-row.partial .status { color: var(--yellow); }
-
-  .pay-row .amounts {
-    text-align: right;
-    flex-shrink: 0;
-  }
-  .pay-row .amounts .total {
-    font-size: 11px;
-    color: var(--text3);
-  }
-  .pay-row .amounts .remain {
-    font-size: 15px;
-    font-weight: 800;
-    margin-top: 2px;
-  }
-  .pay-row.paid .amounts .remain { color: var(--green); }
-  .pay-row.debt .amounts .remain { color: var(--red); }
-  .pay-row.partial .amounts .remain { color: var(--yellow); }
-
-  .tabs-filter {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 14px;
-    background: var(--card);
-    padding: 5px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-  }
-  .filter-btn {
-    flex: 1;
-    padding: 10px 6px;
-    text-align: center;
-    border-radius: 9px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    color: var(--text3);
-    transition: all .15s;
-    background: transparent;
-    box-shadow: none;
-    margin: 0;
-  }
-  .filter-btn.active {
-    background: linear-gradient(135deg, #a855f7, #7c3aed);
-    color: white;
-  }
-</style>
-</head>
-<body>
-
-<div class="container">
-
-  <!-- ============ ЭКРАН: МОЙ ПРОФИЛЬ ============ -->
-  <div class="screen active" id="screen-me">
-    <h1>👤 Мой профиль</h1>
-    <div class="subtitle">Личный кабинет</div>
-
-    <div class="total">
-      <div class="lbl">Общая сумма по всем людям</div>
-      <div class="val" id="meGrandTotal">0.00 BYN</div>
-      <div class="sub" id="meGrandSub">¥ 0.00 · 0.00 кг · 0 человек</div>
-    </div>
-
-    <div class="edit-form">
-      <h2>🛠️ Курсы по умолчанию</h2>
-      <span class="field-label">Курс юаня (¥ → BYN)</span>
-      <input id="me-default-rate" type="number" step="0.0001" inputmode="decimal" placeholder="например 0.47">
-      <span class="field-label">Курс за 1 кг доставки (BYN)</span>
-      <input id="me-default-kg" type="number" step="0.01" inputmode="decimal" placeholder="например 24">
-      <button onclick="saveDefaults()">💾 Сохранить курс</button>
-      <div class="formula">Подставляется при добавлении нового человека</div>
-    </div>
-
-    <div class="edit-form">
-      <h2>ℹ️ Формулы</h2>
-      <div class="formula" style="text-align:left; line-height:1.7;">
-        • Сумма BYN = Юани × Курс<br>
-        • Доставка BYN = Вес × Курс за кг<br>
-        • Итого = Сумма + Доставка<br>
-        • <b style="color:var(--green);">Остаток</b> = Итого − Оплачено<br><br>
-        <b style="color:var(--text);">Пример:</b> 270 ¥ × 0.47 = 126.90 BYN
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ ЭКРАН: ЛЮДИ ============ -->
-  <div class="screen" id="screen-people">
-    <h1>👥 Люди</h1>
-    <div class="subtitle">Все, кто заказывал</div>
-    <button class="green" onclick="openAddForm()" style="margin-bottom:14px;">➕ Добавить человека</button>
-    <div class="people-list" id="peopleList"></div>
-  </div>
-
-  <!-- ============ ЭКРАН: ПРОФИЛЬ ЧЕЛОВЕКА ============ -->
-  <div class="screen" id="screen-person">
-    <button class="back-btn" onclick="goBack()">← Назад</button>
-    <div id="personDetails"></div>
-  </div>
-
-  <!-- ============ ЭКРАН: ФОРМА ============ -->
-  <div class="screen" id="screen-form">
-    <button class="back-btn" onclick="goBack()">← Назад</button>
-    <div class="edit-form">
-      <h2 id="formTitle">➕ Новый человек</h2>
-
-      <span class="field-label">Выбери смайл</span>
-      <div class="avatar-picker" id="avatarPicker"></div>
-
-      <span class="field-label">Имя *</span>
-      <input id="f-name" placeholder="Например: Анна" autocomplete="off">
-
-      <span class="field-label">Вес посылки (кг)</span>
-      <input id="f-weight" placeholder="например 6" type="number" step="0.01" inputmode="decimal">
-
-      <span class="field-label">Сумма в юанях ¥</span>
-      <input id="f-yuan" placeholder="например 270" type="number" step="0.01" inputmode="decimal">
-
-      <div class="row2">
-        <div>
-          <span class="field-label">Курс юаня</span>
-          <input id="f-rate" placeholder="0.47" type="number" step="0.0001" inputmode="decimal">
-        </div>
-        <div>
-          <span class="field-label">Курс за 1 кг</span>
-          <input id="f-kgrate" placeholder="24" type="number" step="0.01" inputmode="decimal">
-        </div>
-      </div>
-
-      <span class="field-label">💰 Уже оплачено (BYN)</span>
-      <input id="f-paid" placeholder="0" type="number" step="0.01" inputmode="decimal">
-
-      <button onclick="savePerson()" id="formSaveBtn">💾 Сохранить</button>
-    </div>
-  </div>
-
-  <!-- ============ ЭКРАН: ОПЛАТЫ ============ -->
-  <div class="screen" id="screen-payments">
-    <h1>💰 Оплаты</h1>
-    <div class="subtitle">Кто оплатил, кто должен</div>
-
-    <div class="total">
-      <div class="lbl">Всего получено</div>
-      <div class="val" id="totalPaid">0.00 BYN</div>
-      <div class="sub" id="totalRemain">Осталось: 0.00 BYN</div>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat goods">
-        <span class="val" id="countPaid">0</span>
-        <span class="lbl">Оплатили</span>
-      </div>
-      <div class="stat" style="border-color:rgba(251,191,36,.3);">
-        <span class="val" style="color:var(--yellow);" id="countPartial">0</span>
-        <span class="lbl">Частично</span>
-      </div>
-      <div class="stat" style="border-color:rgba(248,113,113,.3);">
-        <span class="val" style="color:var(--red);" id="countDebt">0</span>
-        <span class="lbl">Должны</span>
-      </div>
-      <div class="stat weight">
-        <span class="val" id="countAll">0</span>
-        <span class="lbl">Всего</span>
-      </div>
-    </div>
-
-    <div class="tabs-filter">
-      <button class="filter-btn active" onclick="setPayFilter('all', this)">Все</button>
-      <button class="filter-btn" onclick="setPayFilter('debt', this)">Должны</button>
-      <button class="filter-btn" onclick="setPayFilter('paid', this)">Оплатили</button>
-    </div>
-
-    <div id="paymentsList"></div>
-  </div>
-
-  <!-- ============ ЭКРАН: СУММА ============ -->
-  <div class="screen" id="screen-total">
-    <h1>📊 Сумма</h1>
-    <div class="subtitle">Итоги по всем заказам</div>
-
-    <div class="total">
-      <div class="lbl">Итого по всем людям</div>
-      <div class="val" id="grandTotal">0.00 BYN</div>
-      <div class="sub" id="grandSub">¥ 0.00 · 0.00 кг · 0 человек</div>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat goods">
-        <span class="val" id="sumGoods">0.00</span>
-        <span class="lbl">Товар BYN</span>
-      </div>
-      <div class="stat deliv">
-        <span class="val" id="sumDeliv">0.00</span>
-        <span class="lbl">Доставка BYN</span>
-      </div>
-      <div class="stat yuan">
-        <span class="val" id="sumYuan">¥0.00</span>
-        <span class="lbl">Всего юаней</span>
-      </div>
-      <div class="stat weight">
-        <span class="val" id="sumWeight">0.00 кг</span>
-        <span class="lbl">Всего веса</span>
-      </div>
-    </div>
-
-    <div class="edit-form">
-      <h2>📋 Разбивка по людям</h2>
-      <div id="totalsBreakdown"></div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ============ НИЖНЕЕ МЕНЮ ============ -->
-<div class="menu">
-  <div class="menu-item active" data-screen="me" onclick="switchScreen('me')">
-    <span class="ico">👤</span>
-    Профиль
-  </div>
-  <div class="menu-item" data-screen="people" onclick="switchScreen('people')">
-    <span class="ico">👥</span>
-    Люди
-  </div>
-  <div class="menu-item" data-screen="payments" onclick="switchScreen('payments')">
-    <span class="ico">💰</span>
-    Оплаты
-  </div>
-  <div class="menu-item" data-screen="total" onclick="switchScreen('total')">
-    <span class="ico">📊</span>
-    Сумма
-  </div>
-</div>
-
 <script>
-// ============ ДАННЫЕ ============
-const KEY = 'uchet_v4';
-const DEFAULTS_KEY = 'uchet_defaults_v4';
-
-const AVATARS = ['🧑‍🦰','👩','🧔','👩‍🦱','🧑','👨','👩‍🦳','🧑‍🦱','👨‍🦰','👩‍🦰','🧓','👧','🧒'];
-
-let currentPersonId = null;
-let selectedAvatar = AVATARS[0];
-let payFilter = 'all';
-
-function load() {
-  try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
-  catch { return []; }
-}
-function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
-
-function loadDefaults() {
-  try { return JSON.parse(localStorage.getItem(DEFAULTS_KEY) || '{}'); }
-  catch { return {}; }
-}
-function getDefaults() { return loadDefaults(); }
-
-function saveDefaults() {
-  const rate = parseFloat(document.getElementById('me-default-rate').value) || 0;
-  const kg   = parseFloat(document.getElementById('me-default-kg').value) || 0;
-  localStorage.setItem(DEFAULTS_KEY, JSON.stringify({ rate, kg }));
-  alert('✅ Сохранено');
-}
-
-// ============ РАСЧЁТЫ ============
-function calcPerson(p) {
-  const goods = (p.yuan || 0) * (p.rate || 0);
-  const deliv = (p.weight || 0) * (p.kgrate || 0);
-  const total = goods + deliv;
-  const paid = p.paid || 0;
-  const remain = total - paid;
-
-  let status = 'debt';
-  if (paid >= total - 0.01) status = 'paid';
-  else if (paid > 0.01) status = 'partial';
-
-  return { goods, deliv, total, paid, remain, status };
-}
-
-function calcTotals(data) {
-  let totalByn = 0, goodsByn = 0, delivByn = 0;
-  let totalYuan = 0, totalWeight = 0, totalPaid = 0;
-  data.forEach(p => {
-    const c = calcPerson(p);
-    goodsByn += c.goods;
-    delivByn += c.deliv;
-    totalByn += c.total;
-    totalPaid += c.paid;
-    totalYuan += p.yuan || 0;
-    totalWeight += p.weight || 0;
-  });
-  return {
-    totalByn, goodsByn, delivByn, totalYuan, totalWeight,
-    totalPaid, totalRemain: totalByn - totalPaid
-  };
-}
-
-// ============ НАВИГАЦИЯ ============
-function switchScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-
-  document.getElementById('screen-' + name).classList.add('active');
-  const item = document.querySelector(`.menu-item[data-screen="${name}"]`);
-  if (item) item.classList.add('active');
-
-  window.scrollTo(0, 0);
-
-  if (name === 'me') renderMe();
-  if (name === 'people') renderPeople();
-  if (name === 'payments') renderPayments();
-  if (name === 'total') renderTotal();
-}
-
-function goBack() { switchScreen('people'); }
-
-// ============ МОЙ ПРОФИЛЬ ============
+// ================= МОЙ ПРОФИЛЬ =================
 function renderMe() {
   const def = getDefaults();
   document.getElementById('me-default-rate').value = def.rate || '';
   document.getElementById('me-default-kg').value = def.kg || '';
+  document.getElementById('me-pin').value = loadPin();
 
   const data = load();
   const t = calcTotals(data);
-
-  document.getElementById('meGrandTotal').textContent = t.totalByn.toFixed(2) + ' BYN';
-  document.getElementById('meGrandSub').textContent =
-    '¥ ' + t.totalYuan.toFixed(2) + ' · ' +
-    t.totalWeight.toFixed(2) + ' кг · ' +
-    data.length + ' ' + plural(data.length, 'человек', 'человека', 'человек');
+  document.getElementById('meGrandTotal').textContent = t.totalByn.toFixed(2)+' BYN';
+  document.getElementById('meGrandSub').textContent = '¥'+t.totalYuan.toFixed(2)+' · '+t.totalWeight.toFixed(2)+' кг · '+data.length+' '+plural(data.length,'человек','человека','человек');
 }
 
-// ============ СПИСОК ЛЮДЕЙ ============
+// ================= СПИСОК ЛЮДЕЙ =================
 function renderPeople() {
   const data = load();
+  const q = (document.getElementById('searchPeople').value || '').toLowerCase().trim();
+  const filtered = q ? data.filter(p => p.name.toLowerCase().includes(q) || (p.phone||'').includes(q) || (p.telegram||'').toLowerCase().includes(q)) : data;
   const el = document.getElementById('peopleList');
 
-  if (!data.length) {
-    el.innerHTML = '<div class="empty">Пока никого нет.<br>Нажми ➕ Добавить человека</div>';
-    return;
-  }
+  if (!data.length) { el.innerHTML = '<div class="empty">Пока никого нет.<br>Нажми ➕ Добавить человека</div>'; return; }
+  if (!filtered.length) { el.innerHTML = '<div class="empty">Никого не найдено</div>'; return; }
 
-  el.innerHTML = data.map(p => {
+  el.innerHTML = filtered.map(p => {
     const c = calcPerson(p);
     return `<div class="person-row ${c.status}" onclick="openPerson(${p.id})">
-      <div class="avatar">
-        ${p.avatar}
-        <span class="status-dot ${c.status}"></span>
-      </div>
+      <div class="avatar">${p.avatar}<span class="status-dot ${c.status}"></span></div>
       <div class="info">
         <div class="name">${escapeHtml(p.name)}</div>
-        <div class="sub">${(p.weight||0).toFixed(2)} кг · ¥${(p.yuan||0).toFixed(2)}</div>
+        <div class="sub">${c.ordersCount} ${plural(c.ordersCount,'заказ','заказа','заказов')} · ${c.weight.toFixed(2)} кг · ¥${c.yuan.toFixed(2)}</div>
       </div>
       <div class="amount">
         <div class="byn">${c.total.toFixed(2)}</div>
@@ -885,259 +38,297 @@ function renderPeople() {
   }).join('');
 }
 
-// ============ ПРОФИЛЬ ЧЕЛОВЕКА ============
+// ================= ПРОФИЛЬ ЧЕЛОВЕКА =================
 function openPerson(id) {
   const data = load();
   const p = data.find(x => x.id === id);
   if (!p) return;
-
+  currentOrderPersonId = id;
   const c = calcPerson(p);
 
-  let statusText = '❌ Не оплачено';
-  let statusClass = 'debt';
-  if (c.status === 'paid') { statusText = '✅ Оплачено полностью'; statusClass = 'paid'; }
-  else if (c.status === 'partial') { statusText = '⚠️ Частично оплачено'; statusClass = 'partial'; }
+  let statusText = '❌ Не оплачено', statusClass = 'debt';
+  if (c.status==='paid') { statusText='✅ Оплачено полностью'; statusClass='paid'; }
+  else if (c.status==='partial') { statusText='⚠️ Частично оплачено'; statusClass='partial'; }
 
-  const el = document.getElementById('personDetails');
-  el.innerHTML = `
+  const ordersHtml = (p.orders||[]).length ? (p.orders||[]).map(o => {
+    const co = calcOrder(o);
+    return `<div class="order-item">
+      <div class="head">
+        <div class="date">${o.date ? new Date(o.date).toLocaleDateString('ru-RU') : 'без даты'}</div>
+        <div class="order-total">${co.total.toFixed(2)} BYN</div>
+      </div>
+      ${o.items ? `<div class="row-small">📦 ${escapeHtml(o.items)}</div>` : ''}
+      <div class="row-small">⚖️ ${(o.weight||0).toFixed(2)} кг × ${o.kgrate} = ${co.deliv.toFixed(2)} BYN</div>
+      <div class="row-small">💴 ¥${(o.yuan||0).toFixed(2)} × ${o.rate} = ${co.goods.toFixed(2)} BYN</div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <button class="small ghost" onclick="editOrder(${p.id}, ${o.id})">✏️</button>
+        <button class="small danger" onclick="deleteOrder(${p.id}, ${o.id})">🗑</button>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty" style="padding:20px;font-size:13px;">Заказов пока нет</div>';
+
+  const paymentsHtml = (p.payments||[]).length ? (p.payments||[]).slice().reverse().map(pay => `
+    <div class="payment-history-item">
+      <span class="date">${new Date(pay.date).toLocaleDateString('ru-RU')}</span>
+      <span class="amount">+ ${pay.amount.toFixed(2)} BYN</span>
+      <button class="small ghost" style="padding:4px 8px;font-size:11px;" onclick="deletePayment(${p.id}, ${pay.id})">×</button>
+    </div>
+  `).join('') : '<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">Платежей пока нет</div>';
+
+  document.getElementById('personDetails').innerHTML = `
     <div class="profile-head">
       <div class="avatar-big">${p.avatar}</div>
       <div class="name">${escapeHtml(p.name)}</div>
+      ${p.phone ? `<div class="contact">📞 ${escapeHtml(p.phone)}</div>` : ''}
+      ${p.telegram ? `<div class="contact">💬 ${escapeHtml(p.telegram)}</div>` : ''}
     </div>
 
     <div class="total-big">
       <div class="lbl">Итого к оплате</div>
       <div class="val">${c.total.toFixed(2)} BYN</div>
-      <div class="formula" style="color:rgba(255,255,255,.85);">${(p.yuan||0).toFixed(2)} ¥ × ${p.rate} + ${(p.weight||0).toFixed(2)} кг × ${p.kgrate}</div>
     </div>
 
     <div class="stats-grid">
-      <div class="stat weight">
-        <span class="val">${(p.weight||0).toFixed(2)} кг</span>
-        <span class="lbl">Вес</span>
-      </div>
-      <div class="stat yuan">
-        <span class="val">¥${(p.yuan||0).toFixed(2)}</span>
-        <span class="lbl">Юани</span>
-      </div>
-      <div class="stat rate">
-        <span class="val">×${p.rate}</span>
-        <span class="lbl">Курс юаня</span>
-      </div>
-      <div class="stat kg">
-        <span class="val">${p.kgrate} BYN</span>
-        <span class="lbl">Курс за кг</span>
-      </div>
-      <div class="stat goods">
-        <span class="val">${c.goods.toFixed(2)}</span>
-        <span class="lbl">Товар BYN</span>
-      </div>
-      <div class="stat deliv">
-        <span class="val">${c.deliv.toFixed(2)}</span>
-        <span class="lbl">Доставка BYN</span>
-      </div>
+      <div class="stat weight"><span class="val">${c.weight.toFixed(2)} кг</span><span class="lbl">Вес</span></div>
+      <div class="stat yuan"><span class="val">¥${c.yuan.toFixed(2)}</span><span class="lbl">Юани</span></div>
+      <div class="stat goods"><span class="val">${c.goods.toFixed(2)}</span><span class="lbl">Товар BYN</span></div>
+      <div class="stat deliv"><span class="val">${c.deliv.toFixed(2)}</span><span class="lbl">Доставка BYN</span></div>
     </div>
 
-    <!-- БЛОК ОПЛАТЫ -->
+    <div class="edit-form">
+      <h2>📦 Заказы (${(p.orders||[]).length})</h2>
+      <button class="green" onclick="openAddOrder(${p.id})">➕ Добавить заказ</button>
+      ${ordersHtml}
+    </div>
+
     <div class="pay-block">
       <h2>💰 Оплата</h2>
-
       <div class="pay-status ${statusClass}">
         <span>${statusText}</span>
         <span>${c.paid.toFixed(2)} / ${c.total.toFixed(2)}</span>
       </div>
-
       <div class="pay-numbers">
-        <div class="pay-num paid">
-          <span class="val">${c.paid.toFixed(2)}</span>
-          <span class="lbl">Оплачено, BYN</span>
-        </div>
-        <div class="pay-num remain">
-          <span class="val">${c.remain.toFixed(2)}</span>
-          <span class="lbl">Осталось, BYN</span>
-        </div>
+        <div class="pay-num paid"><span class="val">${c.paid.toFixed(2)}</span><span class="lbl">Оплачено</span></div>
+        <div class="pay-num remain"><span class="val">${c.remain.toFixed(2)}</span><span class="lbl">Осталось</span></div>
       </div>
 
-      <span class="field-label">Введи сумму оплаты (BYN)</span>
-      <input id="pay-input" type="number" step="0.01" inputmode="decimal" placeholder="например 500" value="${c.paid > 0 ? c.paid : ''}">
+      <span class="field-label">Добавить платёж (BYN)</span>
+      <input id="pay-amount" type="number" step="0.01" inputmode="decimal" placeholder="например 500">
+      <input id="pay-date" type="date">
+      <button onclick="addPayment(${p.id})">➕ Добавить платёж</button>
+      <button class="green" onclick="payFull(${p.id})">✅ Оплатить весь остаток</button>
 
-      <div class="pay-quick">
-        <button class="ghost" onclick="setPay(${p.id}, 0)">Сброс (0)</button>
-        <button class="green" onclick="setPay(${p.id}, ${c.total})">Оплачено полностью</button>
-      </div>
-
-      <button onclick="savePay(${p.id})">💾 Сохранить оплату</button>
+      <h2 style="margin-top:16px;">История платежей</h2>
+      ${paymentsHtml}
     </div>
 
-    <button onclick="openEditForm(${p.id})" style="margin-bottom:10px;">✏️ Редактировать данные</button>
+    <button onclick="openEditForm(${p.id})">✏️ Редактировать контакты</button>
     <button class="danger" onclick="deletePerson(${p.id})">🗑 Удалить человека</button>
   `;
 
   switchScreen('person');
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-  document.querySelector('.menu-item[data-screen="people"]').classList.add('active');
+  const mi = document.querySelector('.menu-item[data-screen="people"]');
+  if (mi) mi.classList.add('active');
 }
 
-function savePay(id) {
-  const val = parseFloat(document.getElementById('pay-input').value) || 0;
+// ================= ПЛАТЕЖИ =================
+function addPayment(personId) {
+  const amt = parseFloat(document.getElementById('pay-amount').value) || 0;
+  const dt = document.getElementById('pay-date').value || new Date().toISOString().slice(0,10);
+  if (amt <= 0) { showModal('⚠️ Ошибка','Введите сумму больше 0'); return; }
   const data = load();
-  const idx = data.findIndex(p => p.id === id);
+  const idx = data.findIndex(p => p.id === personId);
   if (idx < 0) return;
-  data[idx].paid = val;
+  if (!data[idx].payments) data[idx].payments = [];
+  data[idx].payments.push({ id: Date.now(), amount: amt, date: dt });
   save(data);
-  openPerson(id); // перерисуем
+  openPerson(personId);
 }
-
-function setPay(id, val) {
+function payFull(personId) {
   const data = load();
-  const idx = data.findIndex(p => p.id === id);
+  const idx = data.findIndex(p => p.id === personId);
   if (idx < 0) return;
-  data[idx].paid = Math.round(val * 100) / 100;
+  const c = calcPerson(data[idx]);
+  if (c.remain <= 0.01) { showModal('ℹ️','Уже оплачено'); return; }
+  if (!data[idx].payments) data[idx].payments = [];
+  data[idx].payments.push({ id: Date.now(), amount: c.remain, date: new Date().toISOString().slice(0,10) });
   save(data);
-  openPerson(id);
+  openPerson(personId);
+}
+function deletePayment(personId, payId) {
+  if (!confirm('Удалить этот платёж?')) return;
+  const data = load();
+  const idx = data.findIndex(p => p.id === personId);
+  if (idx < 0) return;
+  data[idx].payments = (data[idx].payments||[]).filter(x => x.id !== payId);
+  save(data);
+  openPerson(personId);
 }
 
-function deletePerson(id) {
-  if (!confirm('Удалить этого человека?')) return;
-  const data = load().filter(p => p.id !== id);
-  save(data);
-  switchScreen('people');
-}
-
-// ============ ФОРМА ============
+// ================= ФОРМА ЧЕЛОВЕКА =================
 function openAddForm() {
   currentPersonId = null;
   document.getElementById('formTitle').textContent = '➕ Новый человек';
   document.getElementById('formSaveBtn').textContent = '💾 Сохранить';
-
-  const def = getDefaults();
   document.getElementById('f-name').value = '';
-  document.getElementById('f-weight').value = '';
-  document.getElementById('f-yuan').value = '';
-  document.getElementById('f-rate').value = def.rate || '';
-  document.getElementById('f-kgrate').value = def.kg || '';
-  document.getElementById('f-paid').value = '';
-
+  document.getElementById('f-phone').value = '';
+  document.getElementById('f-telegram').value = '';
   selectedAvatar = AVATARS[0];
   renderAvatarPicker();
-
   switchScreen('form');
 }
-
 function openEditForm(id) {
-  const data = load();
-  const p = data.find(x => x.id === id);
+  const p = load().find(x => x.id === id);
   if (!p) return;
-
   currentPersonId = id;
   document.getElementById('formTitle').textContent = '✏️ Редактировать';
   document.getElementById('formSaveBtn').textContent = '💾 Обновить';
-
   document.getElementById('f-name').value = p.name;
-  document.getElementById('f-weight').value = p.weight || '';
-  document.getElementById('f-yuan').value = p.yuan || '';
-  document.getElementById('f-rate').value = p.rate || '';
-  document.getElementById('f-kgrate').value = p.kgrate || '';
-  document.getElementById('f-paid').value = p.paid || '';
-
+  document.getElementById('f-phone').value = p.phone || '';
+  document.getElementById('f-telegram').value = p.telegram || '';
   selectedAvatar = p.avatar;
   renderAvatarPicker();
-
   switchScreen('form');
 }
-
 function renderAvatarPicker() {
-  const el = document.getElementById('avatarPicker');
-  el.innerHTML = AVATARS.map(a =>
-    `<div class="avatar-opt ${a === selectedAvatar ? 'selected' : ''}" onclick="pickAvatar('${a}')">${a}</div>`
+  document.getElementById('avatarPicker').innerHTML = AVATARS.map(a =>
+    `<div class="avatar-opt ${a===selectedAvatar?'selected':''}" onclick="pickAvatar('${a}')">${a}</div>`
   ).join('');
 }
-
-function pickAvatar(a) {
-  selectedAvatar = a;
-  renderAvatarPicker();
-}
+function pickAvatar(a) { selectedAvatar = a; renderAvatarPicker(); }
 
 function savePerson() {
-  const name   = document.getElementById('f-name').value.trim();
-  const weight = parseFloat(document.getElementById('f-weight').value) || 0;
-  const yuan   = parseFloat(document.getElementById('f-yuan').value) || 0;
-  const rate   = parseFloat(document.getElementById('f-rate').value) || 0;
-  const kgrate = parseFloat(document.getElementById('f-kgrate').value) || 0;
-  const paid   = parseFloat(document.getElementById('f-paid').value) || 0;
-
-  if (!name)     { alert('Введите имя'); return; }
-  if (rate <= 0) { alert('Введите курс юаня больше нуля'); return; }
-
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const telegram = document.getElementById('f-telegram').value.trim();
+  if (!name) { showModal('⚠️ Ошибка','Введите имя'); return; }
   const data = load();
-
   if (currentPersonId) {
     const idx = data.findIndex(p => p.id === currentPersonId);
-    if (idx >= 0) {
-      data[idx] = { ...data[idx], name, weight, yuan, rate, kgrate, paid, avatar: selectedAvatar };
-    }
+    if (idx >= 0) data[idx] = { ...data[idx], name, phone, telegram, avatar: selectedAvatar };
   } else {
-    data.push({
-      id: Date.now(),
-      name, weight, yuan, rate, kgrate, paid,
-      avatar: selectedAvatar
-    });
+    data.push({ id: Date.now(), name, phone, telegram, avatar: selectedAvatar, orders: [], payments: [] });
   }
-
   save(data);
   switchScreen('people');
 }
+function deletePerson(id) {
+  if (!confirm('Удалить человека и все его заказы?')) return;
+  save(load().filter(p => p.id !== id));
+  switchScreen('people');
+}
 
-// ============ ВКЛАДКА ОПЛАТ ============
+// ================= ЗАКАЗЫ =================
+function openAddOrder(personId) {
+  currentOrderPersonId = personId;
+  currentOrderId = null;
+  const def = getDefaults();
+  document.getElementById('orderFormTitle').textContent = '➕ Новый заказ';
+  document.getElementById('orderSaveBtn').textContent = '💾 Сохранить заказ';
+  document.getElementById('o-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('o-items').value = '';
+  document.getElementById('o-weight').value = '';
+  document.getElementById('o-kgrate').value = def.kg || '';
+  document.getElementById('o-yuan').value = '';
+  document.getElementById('o-rate').value = def.rate || '';
+  switchScreen('order');
+}
+function editOrder(personId, orderId) {
+  const p = load().find(x => x.id === personId);
+  if (!p) return;
+  const o = (p.orders||[]).find(x => x.id === orderId);
+  if (!o) return;
+  currentOrderPersonId = personId;
+  currentOrderId = orderId;
+  document.getElementById('orderFormTitle').textContent = '✏️ Редактировать заказ';
+  document.getElementById('orderSaveBtn').textContent = '💾 Обновить';
+  document.getElementById('o-date').value = o.date || '';
+  document.getElementById('o-items').value = o.items || '';
+  document.getElementById('o-weight').value = o.weight || '';
+  document.getElementById('o-kgrate').value = o.kgrate || '';
+  document.getElementById('o-yuan').value = o.yuan || '';
+  document.getElementById('o-rate').value = o.rate || '';
+  switchScreen('order');
+}
+function saveOrder() {
+  const date = document.getElementById('o-date').value;
+  const items = document.getElementById('o-items').value.trim();
+  const weight = parseFloat(document.getElementById('o-weight').value) || 0;
+  const kgrate = parseFloat(document.getElementById('o-kgrate').value) || 0;
+  const yuan = parseFloat(document.getElementById('o-yuan').value) || 0;
+  const rate = parseFloat(document.getElementById('o-rate').value) || 0;
+  if (rate <= 0) { showModal('⚠️ Ошибка','Введите курс юаня больше 0'); return; }
+
+  const data = load();
+  const idx = data.findIndex(p => p.id === currentOrderPersonId);
+  if (idx < 0) return;
+  if (!data[idx].orders) data[idx].orders = [];
+
+  if (currentOrderId) {
+    const oIdx = data[idx].orders.findIndex(o => o.id === currentOrderId);
+    if (oIdx >= 0) data[idx].orders[oIdx] = { id: currentOrderId, date, items, weight, kgrate, yuan, rate };
+  } else {
+    data[idx].orders.push({ id: Date.now(), date, items, weight, kgrate, yuan, rate });
+  }
+  save(data);
+  openPerson(currentOrderPersonId);
+}
+function deleteOrder(personId, orderId) {
+  if (!confirm('Удалить заказ?')) return;
+  const data = load();
+  const idx = data.findIndex(p => p.id === personId);
+  if (idx < 0) return;
+  data[idx].orders = (data[idx].orders||[]).filter(o => o.id !== orderId);
+  save(data);
+  openPerson(personId);
+}
+
+// ================= ОПЛАТЫ (экран) =================
 function setPayFilter(f, btn) {
   payFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderPayments();
 }
-
 function renderPayments() {
   const data = load();
   const t = calcTotals(data);
+  document.getElementById('totalPaid').textContent = t.totalPaid.toFixed(2)+' BYN';
+  document.getElementById('totalRemain').textContent = 'Осталось: '+t.totalRemain.toFixed(2)+' BYN';
 
-  document.getElementById('totalPaid').textContent = t.totalPaid.toFixed(2) + ' BYN';
-  document.getElementById('totalRemain').textContent = 'Осталось: ' + t.totalRemain.toFixed(2) + ' BYN';
-
-  let cntPaid = 0, cntPartial = 0, cntDebt = 0;
+  let cP=0,cPa=0,cD=0,cO=0;
   data.forEach(p => {
     const c = calcPerson(p);
-    if (c.status === 'paid') cntPaid++;
-    else if (c.status === 'partial') cntPartial++;
-    else cntDebt++;
+    if (c.status==='paid') cP++;
+    else if (c.status==='partial') cPa++;
+    else cD++;
+    if (c.overdue) cO++;
   });
-
-  document.getElementById('countPaid').textContent = cntPaid;
-  document.getElementById('countPartial').textContent = cntPartial;
-  document.getElementById('countDebt').textContent = cntDebt;
-  document.getElementById('countAll').textContent = data.length;
+  document.getElementById('countPaid').textContent = cP;
+  document.getElementById('countPartial').textContent = cPa;
+  document.getElementById('countDebt').textContent = cD;
+  document.getElementById('countOverdue').textContent = cO;
 
   let filtered = data;
-  if (payFilter === 'paid') filtered = data.filter(p => calcPerson(p).status === 'paid');
-  if (payFilter === 'debt') filtered = data.filter(p => calcPerson(p).status !== 'paid');
+  if (payFilter==='paid') filtered = data.filter(p => calcPerson(p).status === 'paid');
+  if (payFilter==='debt') filtered = data.filter(p => calcPerson(p).status !== 'paid');
+  if (payFilter==='overdue') filtered = data.filter(p => calcPerson(p).overdue);
 
   const el = document.getElementById('paymentsList');
-
-  if (!filtered.length) {
-    el.innerHTML = '<div class="empty">Нет записей в этой категории</div>';
-    return;
-  }
+  if (!filtered.length) { el.innerHTML = '<div class="empty">Нет записей</div>'; return; }
 
   el.innerHTML = filtered.map(p => {
     const c = calcPerson(p);
-    let statusText = 'Должен';
-    if (c.status === 'paid') statusText = '✅ Оплачено';
-    else if (c.status === 'partial') statusText = '⚠️ Частично';
-
-    return `<div class="pay-row ${c.status}" onclick="openPerson(${p.id})">
+    let st = 'Должен', cls = c.status;
+    if (c.status==='paid') st = '✅ Оплачено';
+    else if (c.status==='partial') st = '⚠️ Частично';
+    if (c.overdue && c.status !== 'paid') { st = '🔥 Просрочено >30 дней'; cls = 'overdue'; }
+    return `<div class="pay-row ${cls}" onclick="openPerson(${p.id})">
       <div class="avatar">${p.avatar}</div>
       <div class="info">
         <div class="name">${escapeHtml(p.name)}</div>
-        <div class="status">${statusText}</div>
+        <div class="status">${st}</div>
       </div>
       <div class="amounts">
         <div class="total">из ${c.total.toFixed(2)}</div>
@@ -1147,66 +338,133 @@ function renderPayments() {
   }).join('');
 }
 
-// ============ ОБЩАЯ СУММА ============
-function renderTotal() {
+// ================= СТАТИСТИКА =================
+function renderStats() {
   const data = load();
   const t = calcTotals(data);
-
-  document.getElementById('grandTotal').textContent = t.totalByn.toFixed(2) + ' BYN';
-  document.getElementById('grandSub').textContent =
-    '¥ ' + t.totalYuan.toFixed(2) + ' · ' +
-    t.totalWeight.toFixed(2) + ' кг · ' +
-    data.length + ' ' + plural(data.length, 'человек', 'человека', 'человек');
-
+  document.getElementById('statsTotal').textContent = t.totalByn.toFixed(2)+' BYN';
+  document.getElementById('statsSub').textContent = '¥'+t.totalYuan.toFixed(2)+' · '+t.totalWeight.toFixed(2)+' кг';
   document.getElementById('sumGoods').textContent = t.goodsByn.toFixed(2);
   document.getElementById('sumDeliv').textContent = t.delivByn.toFixed(2);
-  document.getElementById('sumYuan').textContent = '¥' + t.totalYuan.toFixed(2);
-  document.getElementById('sumWeight').textContent = t.totalWeight.toFixed(2) + ' кг';
+  document.getElementById('sumYuan').textContent = '¥'+t.totalYuan.toFixed(2);
+  document.getElementById('sumWeight').textContent = t.totalWeight.toFixed(2)+' кг';
 
-  const el = document.getElementById('totalsBreakdown');
-  if (!data.length) {
-    el.innerHTML = '<div class="empty">Пока нет данных</div>';
-    return;
-  }
+  // По месяцам
+  const months = {};
+  data.forEach(p => (p.orders||[]).forEach(o => {
+    if (!o.date) return;
+    const m = o.date.slice(0,7);
+    const c = calcOrder(o);
+    if (!months[m]) months[m] = { total: 0, count: 0 };
+    months[m].total += c.total;
+    months[m].count++;
+  }));
 
-  el.innerHTML = data.map(p => {
-    const c = calcPerson(p);
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openPerson(${p.id})">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:22px;">${p.avatar}</span>
-        <div>
-          <div style="font-weight:700;color:var(--text);">${escapeHtml(p.name)}</div>
-          <div style="font-size:11px;color:var(--text3);">¥${(p.yuan||0).toFixed(2)} · ${(p.weight||0).toFixed(2)} кг</div>
-        </div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-weight:800;color:var(--green);">${c.total.toFixed(2)} BYN</div>
-        ${c.remain > 0.01 ? `<div style="font-size:10px;color:var(--red);">долг ${c.remain.toFixed(2)}</div>` : `<div style="font-size:10px;color:var(--green);">✓ оплачено</div>`}
-      </div>
+  const monthKeys = Object.keys(months).sort().reverse();
+  const maxTotal = Math.max(1, ...monthKeys.map(k => months[k].total));
+  const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+  document.getElementById('monthlyStats').innerHTML = monthKeys.length ? monthKeys.map(k => {
+    const [y, m] = k.split('-');
+    const pct = (months[k].total / maxTotal * 100);
+    return `<div>
+      <div class="month-label">${monthNames[parseInt(m)-1]} ${y} · ${months[k].count} заказ${months[k].count===1?'':'ов'}</div>
+      <div class="chart-bar"><div class="fill" style="width:${Math.max(pct,15)}%">${months[k].total.toFixed(0)} BYN</div></div>
     </div>`;
-  }).join('');
+  }).join('') : '<div class="empty" style="padding:20px;font-size:13px;">Пока нет данных</div>';
+
+  // Все заказы
+  const allOrders = [];
+  data.forEach(p => (p.orders||[]).forEach(o => allOrders.push({ person: p, order: o })));
+  allOrders.sort((a,b) => (b.order.date||'').localeCompare(a.order.date||''));
+
+  document.getElementById('allOrders').innerHTML = allOrders.length ? allOrders.slice(0,50).map(x => {
+    const c = calcOrder(x.order);
+    return `<div class="order-item" onclick="openPerson(${x.person.id})">
+      <div class="head">
+        <div class="date">${x.order.date ? new Date(x.order.date).toLocaleDateString('ru-RU') : '—'} · ${x.person.avatar} ${escapeHtml(x.person.name)}</div>
+        <div class="order-total">${c.total.toFixed(2)} BYN</div>
+      </div>
+      ${x.order.items ? `<div class="row-small">📦 ${escapeHtml(x.order.items)}</div>` : ''}
+    </div>`;
+  }).join('') : '<div class="empty" style="padding:20px;font-size:13px;">Заказов нет</div>';
 }
 
-// ============ ХЕЛПЕРЫ ============
+// ================= РЕЗЕРВНАЯ КОПИЯ =================
+function exportBackup() {
+  const data = load();
+  const def = loadDefaults();
+  const backup = { version: 5, exported: new Date().toISOString(), data, defaults: def };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'uchet-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const b = JSON.parse(e.target.result);
+      if (!b.data || !Array.isArray(b.data)) throw new Error('Неверный формат');
+      if (!confirm('Заменить все текущие данные? (у тебя '+load().length+' человек, в файле '+b.data.length+')')) return;
+      save(b.data);
+      if (b.defaults) localStorage.setItem(DEFAULTS_KEY, JSON.stringify(b.defaults));
+      location.reload();
+    } catch (err) {
+      showModal('❌ Ошибка','Не удалось прочитать файл: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function exportCSV() {
+  const data = load();
+  if (!data.length) { showModal('ℹ️','Нет данных для экспорта'); return; }
+  const rows = [['Имя','Телефон','Telegram','Заказов','Вес всего','Юани всего','Товар BYN','Доставка BYN','Итого BYN','Оплачено BYN','Остаток BYN','Статус']];
+  data.forEach(p => {
+    const c = calcPerson(p);
+    const st = c.status==='paid'?'Оплачено':(c.status==='partial'?'Частично':'Долг');
+    rows.push([p.name, p.phone||'', p.telegram||'', c.ordersCount, c.weight.toFixed(2), c.yuan.toFixed(2), c.goods.toFixed(2), c.deliv.toFixed(2), c.total.toFixed(2), c.paid.toFixed(2), c.remain.toFixed(2), st]);
+  });
+  const csv = '\uFEFF' + rows.map(r => r.map(x => '"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'uchet-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ================= ХЕЛПЕРЫ =================
 function plural(n, one, few, many) {
-  const mod10 = n % 10, mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  const m10 = n%10, m100 = n%100;
+  if (m10===1 && m100!==11) return one;
+  if (m10>=2 && m10<=4 && (m100<10 || m100>=20)) return few;
   return many;
 }
-
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// ============ СТАРТ ============
+// ================= PWA =================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ================= СТАРТ =================
+loadTheme();
+checkLock();
 renderMe();
 renderPeople();
 renderPayments();
-renderTotal();
+renderStats();
 </script>
-
 </body>
 </html>
