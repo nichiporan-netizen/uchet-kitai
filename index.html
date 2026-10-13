@@ -50,7 +50,7 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 .person-row .sub{font-size:12px;color:var(--text3)}
 .person-row .amount{text-align:right;flex-shrink:0}
 .person-row .amount .byn{font-size:16px;font-weight:800;color:var(--green)}
-.person-row .amount .y{font-size:11px;color:var(--yellow);margin-top:2px}
+.person-row .amount .y{font-size:11px;color:var(--text3);margin-top:2px}
 .back-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:var(--text2);font-weight:600;cursor:pointer;font-size:14px;margin-bottom:14px;width:auto}
 .profile-head{background:linear-gradient(135deg,#2f2547,#251d3a);border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;border:1px solid var(--border)}
 body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
@@ -68,13 +68,13 @@ body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
 .total-big{background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:14px;padding:18px;text-align:center;margin-bottom:16px}
 .total-big .lbl{font-size:11px;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px}
 .total-big .val{font-size:28px;font-weight:900;color:white}
-.pay-status{display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:12px;margin-bottom:12px;font-weight:800;font-size:15px}
+.pay-status{display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:12px;margin-bottom:12px;font-weight:800;font-size:15px;gap:8px;flex-wrap:wrap}
 .pay-status.paid{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3)}
 .pay-status.debt{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3)}
 .pay-status.partial{background:rgba(251,191,36,.15);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
 .pay-numbers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .pay-num{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
-.pay-num .val{font-size:18px;font-weight:800;display:block;margin-bottom:3px}
+.pay-num .val{font-size:18px;font-weight:800;display:block;margin-bottom:3px;word-break:break-all}
 .pay-num .lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
 .pay-num.paid .val{color:var(--green)}
 .pay-num.remain .val{color:var(--red)}
@@ -90,29 +90,49 @@ body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
 .pay-row.paid{border-left-color:var(--green)}
 .pay-row.debt{border-left-color:var(--red)}
 .pay-row.partial{border-left-color:var(--yellow)}
-.pay-row.overdue{border-left-color:#dc2626;background:rgba(220,38,38,.06)}
+.pay-row.overdue{border-left-color:#dc2626;background:rgba(220,38,38,.08)}
 .pay-row .avatar{font-size:30px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:50%;flex-shrink:0;border:1px solid var(--border)}
 .pay-row .info{flex:1;min-width:0}
-.pay-row .name{font-size:15px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pay-row .status{font-size:11px;font-weight:700;text-transform:uppercase}
+.pay-row .name{font-size:15px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.pay-row .status{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .pay-row.paid .status{color:var(--green)}
 .pay-row.debt .status{color:var(--red)}
 .pay-row.partial .status{color:var(--yellow)}
 .pay-row.overdue .status{color:#dc2626}
-.pay-row .amounts{text-align:right;flex-shrink:0}
-.pay-row .amounts .total{font-size:11px;color:var(--text3)}
-.pay-row .amounts .remain{font-size:15px;font-weight:800;margin-top:2px}
-.pay-row.paid .amounts .remain{color:var(--green)}
-.pay-row.debt .amounts .remain{color:var(--red)}
-.pay-row.partial .amounts .remain{color:var(--yellow)}
+.pay-row .amounts{text-align:right;flex-shrink:0;min-width:120px;background:transparent!important;padding:0!important}
+.pay-row .total-text{font-size:11px;color:var(--text2);font-weight:600;white-space:nowrap;display:block;background:transparent!important}
+.pay-row .remain-text{font-size:15px;font-weight:800;margin-top:3px;white-space:nowrap;display:block;background:transparent!important;text-shadow:0 1px 3px rgba(0,0,0,.4)}
 .tabs-filter{display:flex;gap:6px;margin-bottom:14px;background:var(--card);padding:5px;border-radius:12px;border:1px solid var(--border)}
 .filter-btn{flex:1;padding:10px 6px;text-align:center;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text3);background:transparent;box-shadow:none;margin:0}
 .filter-btn.active{background:linear-gradient(135deg,#a855f7,#7c3aed);color:white}
+
+/* ===== ПОИСК С КРЕСТИКОМ ===== */
 .search-box{position:relative;margin-bottom:14px}
-.search-box input{padding-left:42px;background:var(--card);margin:0}
+.search-box input{padding-left:42px;padding-right:44px;background:var(--card);margin:0}
 .search-box .ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
+.search-clear{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  width:28px;height:28px;
+  border-radius:50%;
+  background:var(--border);
+  color:var(--text);
+  font-size:14px;
+  font-weight:700;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  user-select:none;
+  line-height:1;
+}
+.search-clear.visible{display:flex}
+.search-clear:active{opacity:.6}
+
 .order-item{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
-.order-item .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px}
+.order-item .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
 .order-item .date{font-size:11px;color:var(--text3);font-weight:700}
 .order-item .order-total{font-size:14px;font-weight:800;color:var(--green)}
 .order-item .row-small{font-size:12px;color:var(--text2);margin:3px 0}
@@ -131,6 +151,7 @@ body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
 .chart-bar{background:var(--bg);border-radius:8px;overflow:hidden;height:30px;position:relative;margin-bottom:8px}
 .chart-bar .fill{height:100%;background:linear-gradient(90deg,#a855f7,#ec4899);display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:700;color:white;min-width:60px}
 .month-label{font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:700}
+.overpay-note{text-align:center;color:var(--green);font-size:13px;font-weight:700;margin-bottom:12px;padding:8px;background:rgba(74,222,128,.1);border-radius:10px;border:1px solid rgba(74,222,128,.3)}
 </style>
 </head>
 <body>
@@ -143,7 +164,6 @@ body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
 
 <div class="container">
 
-  <!-- МОЙ ПРОФИЛЬ -->
   <div class="screen active" id="screen-me">
     <div class="top-bar">
       <h1>👤 Мой профиль</h1>
@@ -192,7 +212,6 @@ body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
     </div>
   </div>
 
-  <!-- ЛЮДИ -->
   <div class="screen" id="screen-people">
     <div class="top-bar">
       <h1>👥 Люди</h1>
@@ -200,19 +219,18 @@ body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
     </div>
     <div class="search-box">
       <span class="ico">🔍</span>
-      <input id="searchPeople" placeholder="Поиск по имени..." oninput="renderPeople()">
+      <input id="searchPeople" placeholder="Поиск по имени..." oninput="onSearchInput()">
+      <div class="search-clear" id="searchClear" onclick="clearSearch()">✕</div>
     </div>
     <button class="green" onclick="openAddForm()">➕ Добавить человека</button>
     <div class="people-list" id="peopleList"></div>
   </div>
 
-  <!-- ПРОФИЛЬ ЧЕЛОВЕКА -->
   <div class="screen" id="screen-person">
     <button class="back-btn" onclick="goBack()">← Назад</button>
     <div id="personDetails"></div>
   </div>
 
-  <!-- ФОРМА ЧЕЛОВЕКА -->
   <div class="screen" id="screen-form">
     <button class="back-btn" onclick="goBack()">← Назад</button>
     <div class="form">
@@ -229,7 +247,6 @@ body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
     </div>
   </div>
 
-  <!-- ЗАКАЗ -->
   <div class="screen" id="screen-order">
     <button class="back-btn" onclick="openPerson(currentOrderPersonId)">← Назад</button>
     <div class="form">
@@ -262,7 +279,6 @@ body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
     </div>
   </div>
 
-  <!-- ОПЛАТЫ -->
   <div class="screen" id="screen-payments">
     <div class="top-bar">
       <h1>💰 Оплаты</h1>
@@ -288,7 +304,6 @@ body.light .profile-head{background:linear-gradient(135deg,#ede7f6,#e5dbf5)}
     <div id="paymentsList"></div>
   </div>
 
-  <!-- СТАТИСТИКА -->
   <div class="screen" id="screen-stats">
     <div class="top-bar">
       <h1>📈 Статистика</h1>
@@ -371,7 +386,9 @@ function calcPerson(p){
     yuan+=o.yuan||0;weight+=o.weight||0;
   });
   const paid=(p.payments||[]).reduce((s,x)=>s+(x.amount||0),0);
-  const remain=total-paid;
+  const remainReal=total-paid;
+  const remain=Math.max(0,remainReal);
+  const overpay=Math.max(0,-remainReal);
   let status='debt';
   if(paid>=total-0.01)status='paid';
   else if(paid>0.01)status='partial';
@@ -381,7 +398,7 @@ function calcPerson(p){
     const days=(Date.now()-lastDate)/(1000*60*60*24);
     if(days>30)overdue=true;
   }
-  return{goods,deliv,total,yuan,weight,paid,remain,status,overdue,ordersCount:(p.orders||[]).length};
+  return{goods,deliv,total,yuan,weight,paid,remain,overpay,status,overdue,ordersCount:(p.orders||[]).length};
 }
 
 function calcTotals(data){
@@ -412,13 +429,10 @@ function goBack(){switchScreen('people')}
 function loadTheme(){
   const t=localStorage.getItem(THEME_KEY)||'dark';
   if(t==='light')document.body.classList.add('light');
-  document.getElementById('themeBtn').textContent=t==='light'?'☀️':'🌙';
 }
 function toggleTheme(){
   document.body.classList.toggle('light');
-  const isLight=document.body.classList.contains('light');
-  localStorage.setItem(THEME_KEY,isLight?'light':'dark');
-  document.querySelectorAll('.icon-btn').forEach(b=>{if(b.textContent==='🌙'||b.textContent==='☀️')b.textContent=isLight?'☀️':'🌙'});
+  localStorage.setItem(THEME_KEY,document.body.classList.contains('light')?'light':'dark');
 }
 
 function showModal(t,x){
@@ -426,9 +440,7 @@ function showModal(t,x){
   document.getElementById('modalText').textContent=x;
   document.getElementById('modal').classList.add('active');
 }
-function closeModal(e){
-  document.getElementById('modal').classList.remove('active');
-}
+function closeModal(){document.getElementById('modal').classList.remove('active')}
 
 function loadPin(){return localStorage.getItem(PIN_KEY)||''}
 function savePin(){
@@ -438,9 +450,7 @@ function savePin(){
   else localStorage.removeItem(PIN_KEY);
   showModal('✅ Готово',pin?'PIN сохранён':'PIN отключён');
 }
-function checkLock(){
-  if(loadPin())document.getElementById('lockScreen').classList.add('active');
-}
+function checkLock(){if(loadPin())document.getElementById('lockScreen').classList.add('active')}
 function tryUnlock(){
   const inp=document.getElementById('pinInput').value.trim();
   if(inp===loadPin()){
@@ -461,6 +471,21 @@ function renderMe(){
   const t=calcTotals(data);
   document.getElementById('meGrandTotal').textContent=t.totalByn.toFixed(2)+' BYN';
   document.getElementById('meGrandSub').textContent='¥'+t.totalYuan.toFixed(2)+' · '+t.totalWeight.toFixed(2)+' кг · '+data.length+' '+plural(data.length,'человек','человека','человек');
+}
+
+/* ===== ПОИСК С КРЕСТИКОМ ===== */
+function onSearchInput(){
+  const val=document.getElementById('searchPeople').value;
+  const btn=document.getElementById('searchClear');
+  if(val.length>0)btn.classList.add('visible');
+  else btn.classList.remove('visible');
+  renderPeople();
+}
+function clearSearch(){
+  document.getElementById('searchPeople').value='';
+  document.getElementById('searchClear').classList.remove('visible');
+  renderPeople();
+  document.getElementById('searchPeople').focus();
 }
 
 function renderPeople(){
@@ -509,6 +534,8 @@ function openPerson(id){
     '<button class="small ghost" style="padding:4px 8px;font-size:11px;" onclick="deletePayment('+p.id+','+pay.id+')">×</button></div>'
   ).join(''):'<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">Платежей пока нет</div>';
 
+  const overpayHtml=c.overpay>0.01?'<div class="overpay-note">💰 Переплата: '+c.overpay.toFixed(2)+' BYN</div>':'';
+
   document.getElementById('personDetails').innerHTML=
     '<div class="profile-head">'+
     '<div class="avatar-big">'+p.avatar+'</div>'+
@@ -526,6 +553,7 @@ function openPerson(id){
     ordersHtml+'</div>'+
     '<div class="form"><h2>💰 Оплата</h2>'+
     '<div class="pay-status '+statusClass+'"><span>'+statusText+'</span><span>'+c.paid.toFixed(2)+' / '+c.total.toFixed(2)+'</span></div>'+
+    overpayHtml+
     '<div class="pay-numbers">'+
     '<div class="pay-num paid"><span class="val">'+c.paid.toFixed(2)+'</span><span class="lbl">Оплачено</span></div>'+
     '<div class="pay-num remain"><span class="val">'+c.remain.toFixed(2)+'</span><span class="lbl">Осталось</span></div></div>'+
@@ -615,7 +643,7 @@ function savePerson(){
   const data=load();
   if(currentPersonId){
     const idx=data.findIndex(p=>p.id===currentPersonId);
-    if(idx>=0)data[idx]={...data[idx],name,phone,telegram,avatar:selectedAvatar};
+    if(idx>=0)data[idx]=Object.assign({},data[idx],{name,phone,telegram,avatar:selectedAvatar});
   }else{
     data.push({id:Date.now(),name,phone,telegram,avatar:selectedAvatar,orders:[],payments:[]});
   }
@@ -696,11 +724,21 @@ function setPayFilter(f,btn){
   btn.classList.add('active');
   renderPayments();
 }
+
 function renderPayments(){
   const data=load();
   const t=calcTotals(data);
   document.getElementById('totalPaid').textContent=t.totalPaid.toFixed(2)+' BYN';
-  document.getElementById('totalRemain').textContent='Осталось: '+t.totalRemain.toFixed(2)+' BYN';
+
+  const remainDisplay=Math.max(0,t.totalRemain);
+  const overpayTotal=Math.max(0,-t.totalRemain);
+  const remainEl=document.getElementById('totalRemain');
+  if(overpayTotal>0.01){
+    remainEl.textContent='Осталось: 0.00 BYN (переплата '+overpayTotal.toFixed(2)+')';
+  }else{
+    remainEl.textContent='Осталось: '+remainDisplay.toFixed(2)+' BYN';
+  }
+
   let cP=0,cPa=0,cD=0,cO=0;
   data.forEach(p=>{
     const c=calcPerson(p);
@@ -713,24 +751,42 @@ function renderPayments(){
   document.getElementById('countPartial').textContent=cPa;
   document.getElementById('countDebt').textContent=cD;
   document.getElementById('countOverdue').textContent=cO;
+
   let filtered=data;
   if(payFilter==='paid')filtered=data.filter(p=>calcPerson(p).status==='paid');
   if(payFilter==='debt')filtered=data.filter(p=>calcPerson(p).status!=='paid');
   if(payFilter==='overdue')filtered=data.filter(p=>calcPerson(p).overdue);
+
   const el=document.getElementById('paymentsList');
   if(!filtered.length){el.innerHTML='<div class="empty">Нет записей</div>';return}
+
   el.innerHTML=filtered.map(p=>{
     const c=calcPerson(p);
     let st='Должен',cls=c.status;
     if(c.status==='paid')st='✅ Оплачено';
     else if(c.status==='partial')st='⚠️ Частично';
     if(c.overdue&&c.status!=='paid'){st='🔥 Просрочено >30 дней';cls='overdue'}
+
+    let amountLine,amountColor;
+    if(c.overpay>0.01){
+      amountLine='+'+c.overpay.toFixed(2)+' (переплата)';
+      amountColor='var(--green)';
+    }else{
+      amountLine=c.remain.toFixed(2)+' BYN';
+      amountColor=c.status==='paid'?'var(--green)':(c.status==='partial'?'var(--yellow)':'var(--red)');
+    }
+
     return '<div class="pay-row '+cls+'" onclick="openPerson('+p.id+')">'+
       '<div class="avatar">'+p.avatar+'</div>'+
-      '<div class="info"><div class="name">'+escapeHtml(p.name)+'</div>'+
-      '<div class="status">'+st+'</div></div>'+
-      '<div class="amounts"><div class="total">из '+c.total.toFixed(2)+'</div>'+
-      '<div class="remain">'+c.remain.toFixed(2)+' BYN</div></div></div>';
+      '<div class="info">'+
+        '<div class="name">'+escapeHtml(p.name)+'</div>'+
+        '<div class="status">'+st+'</div>'+
+      '</div>'+
+      '<div class="amounts">'+
+        '<span class="total-text">из '+c.total.toFixed(2)+' BYN</span>'+
+        '<span class="remain-text" style="color:'+amountColor+'">'+amountLine+'</span>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
