@@ -1090,6 +1090,11 @@ renderMe();
 renderPeople();
 renderPayments();
 renderProfit();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
 renderStats();
 </script>
 </body>
