@@ -5,14 +5,36 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Учёт заказов</title>
 <link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./icon-192.png">
-<meta name="theme-color" content="#a855f7">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" type="image/png" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="theme-color" content="#a855f7">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Учёт">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDrNY-rPjpUOMk4IqcTqyU5THAUfZIO0Eo",
+    authDomain: "uchet-kitai.firebaseapp.com",
+    projectId: "uchet-kitai",
+    storageBucket: "uchet-kitai.firebasestorage.app",
+    messagingSenderId: "504408507501",
+    appId: "1:504408507501:web:e2fb6c5b48ddbd251feb64"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  window.db = getFirestore(firebaseApp);
+  window.fsDoc = doc;
+  window.fsSetDoc = setDoc;
+  window.fsOnSnapshot = onSnapshot;
+  window.firebaseReady = true;
+  console.log('✅ Firebase подключён');
+</script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#16121f;--card:#221b30;--border:#3a2f52;--accent:#a855f7;--accent2:#c084fc;--text:#f0eaff;--text2:#b8a9d9;--text3:#7a6b9e;--green:#4ade80;--yellow:#fbbf24;--blue:#60a5fa;--orange:#fb923c;--red:#f87171}
@@ -162,9 +184,14 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 .profit-bar .income .v{color:var(--green)}
 .profit-bar .expense .v{color:var(--red)}
 .profit-bar .profit .v{color:var(--blue)}
+.sync-badge{position:fixed;bottom:80px;right:12px;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;z-index:99;transition:opacity .3s;background:rgba(74,222,128,.2);color:var(--green);border:1px solid rgba(74,222,128,.4)}
+.sync-badge.syncing{background:rgba(251,191,36,.2);color:var(--yellow);border-color:rgba(251,191,36,.4)}
+.sync-badge.offline{background:rgba(248,113,113,.2);color:var(--red);border-color:rgba(248,113,113,.4)}
 </style>
 </head>
 <body>
+
+<div class="sync-badge syncing" id="syncBadge">⏳ Подключение...</div>
 
 <div class="lock-screen" id="lockScreen">
   <h2>🔐 Введите PIN</h2>
@@ -174,7 +201,6 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 
 <div class="container">
 
-  <!-- МОЙ ПРОФИЛЬ -->
   <div class="screen active" id="screen-me">
     <div class="top-bar">
       <h1>👤 Мой профиль</h1>
@@ -207,6 +233,16 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
       <button class="ghost" onclick="exportCSV()">📊 Экспорт в Excel (CSV)</button>
     </div>
     <div class="form">
+      <h2>☁️ Синхронизация</h2>
+      <div class="formula" style="text-align:left">
+        <b style="color:var(--text)">Статус:</b> <span id="syncStatusText">Подключение...</span><br>
+        <b style="color:var(--text)">Проект:</b> uchet-kitai<br>
+        <b style="color:var(--text)">Устройство:</b> <span id="deviceInfo"></span><br><br>
+        Данные автоматически сохраняются в облако Google Firebase.<br>
+        Открой приложение на любом устройстве — увидишь одни и те же данные.
+      </div>
+    </div>
+    <div class="form">
       <h2>ℹ️ Формулы</h2>
       <div class="formula" style="text-align:left">
         • Сумма BYN = Юани × Курс<br>
@@ -218,7 +254,6 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
     </div>
   </div>
 
-  <!-- ЛЮДИ -->
   <div class="screen" id="screen-people">
     <div class="top-bar">
       <h1>👥 Люди</h1>
@@ -411,8 +446,83 @@ let currentOrderId=null;
 let selectedAvatar=AVATARS[0];
 let payFilter='all';
 
-function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
-function save(data){localStorage.setItem(KEY,JSON.stringify(data))}
+let cloudData = [];
+let localUpdatedAt = 0;
+let lastCloudUpdate = 0;
+
+function load(){ return cloudData; }
+
+function save(data){
+  cloudData = data;
+  localUpdatedAt = Date.now();
+  localStorage.setItem(KEY, JSON.stringify(data));
+  updateSyncBadge('syncing');
+  if (window.firebaseReady && window.db) {
+    window.fsSetDoc(window.fsDoc(window.db, "uchet", "main"), {
+      people: data,
+      updated: localUpdatedAt
+    }).then(() => {
+      updateSyncBadge('online');
+    }).catch(err => {
+      console.error('Ошибка сохранения:', err);
+      updateSyncBadge('offline');
+    });
+  }
+}
+
+function startCloudSync(){
+  if (!window.firebaseReady || !window.db) return;
+  window.fsOnSnapshot(
+    window.fsDoc(window.db, "uchet", "main"),
+    (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        const cloudPeople = data.people || [];
+        const cloudTime = data.updated || 0;
+        if (cloudTime > lastCloudUpdate) {
+          lastCloudUpdate = cloudTime;
+          cloudData = cloudPeople;
+          localStorage.setItem(KEY, JSON.stringify(cloudPeople));
+          renderMe(); renderPeople(); renderPayments(); renderProfit(); renderStats();
+        }
+      } else {
+        // Первый запуск — заливаем локальные данные в облако
+        const local = JSON.parse(localStorage.getItem(KEY) || '[]');
+        if (local.length > 0) {
+          cloudData = local;
+          save(local);
+        }
+      }
+      updateSyncBadge('online');
+    },
+    (err) => {
+      console.error('Sync ошибка:', err);
+      updateSyncBadge('offline');
+    }
+  );
+}
+
+function updateSyncBadge(state){
+  const b = document.getElementById('syncBadge');
+  const t = document.getElementById('syncStatusText');
+  if (state === 'online') {
+    b.className = 'sync-badge';
+    b.textContent = '☁️ Синхронизировано';
+    if (t) t.textContent = '✅ Синхронизировано с облаком';
+    setTimeout(() => { b.style.opacity = '0.4'; }, 2000);
+  } else if (state === 'syncing') {
+    b.className = 'sync-badge syncing';
+    b.style.opacity = '1';
+    b.textContent = '⏳ Сохранение...';
+    if (t) t.textContent = '⏳ Сохранение...';
+  } else {
+    b.className = 'sync-badge offline';
+    b.style.opacity = '1';
+    b.textContent = '⚠️ Нет связи';
+    if (t) t.textContent = '⚠️ Нет связи с облаком';
+  }
+}
+
 function loadDefaults(){try{return JSON.parse(localStorage.getItem(DEFAULTS_KEY)||'{}')}catch(e){return{}}}
 function getDefaults(){return loadDefaults()}
 
@@ -523,13 +633,15 @@ function renderMe(){
   const t=calcTotals(data);
   document.getElementById('meGrandTotal').textContent=t.totalByn.toFixed(2)+' BYN';
   document.getElementById('meGrandSub').textContent='¥'+t.totalYuan.toFixed(2)+' · '+t.totalWeight.toFixed(2)+' кг · '+data.length+' '+plural(data.length,'человек','человека','человек');
+  const dev = /iPhone|iPad/.test(navigator.userAgent) ? 'iPhone' : (/Android/.test(navigator.userAgent) ? 'Android' : 'ПК');
+  const di = document.getElementById('deviceInfo');
+  if (di) di.textContent = dev;
 }
 
 function onSearchInput(){
   const val=document.getElementById('searchPeople').value;
   const btn=document.getElementById('searchClear');
-  if(val.length>0)btn.classList.add('visible');
-  else btn.classList.remove('visible');
+  if(val.length>0)btn.classList.add('visible'); else btn.classList.remove('visible');
   renderPeople();
 }
 function clearSearch(){
@@ -541,8 +653,7 @@ function clearSearch(){
 function onOrdersSearchInput(){
   const val=document.getElementById('searchOrders').value;
   const btn=document.getElementById('ordersClear');
-  if(val.length>0)btn.classList.add('visible');
-  else btn.classList.remove('visible');
+  if(val.length>0)btn.classList.add('visible'); else btn.classList.remove('visible');
   renderStats();
 }
 function clearOrdersSearch(){
@@ -556,19 +667,15 @@ function renderPeople(){
   let data=load();
   const q=(document.getElementById('searchPeople').value||'').toLowerCase().trim();
   let filtered=q?data.filter(p=>p.name.toLowerCase().includes(q)||(p.phone||'').includes(q)):data.slice();
-
   const sortBy=document.getElementById('sortPeople').value;
   if(sortBy==='name')filtered.sort((a,b)=>a.name.localeCompare(b.name));
   if(sortBy==='debt')filtered.sort((a,b)=>calcPerson(b).remain-calcPerson(a).remain);
   if(sortBy==='total')filtered.sort((a,b)=>calcPerson(b).total-calcPerson(a).total);
-  if(sortBy==='recent'){
-    filtered.sort((a,b)=>{
-      const la=Math.max(...(a.orders||[]).map(o=>new Date(o.date||0).getTime()),0);
-      const lb=Math.max(...(b.orders||[]).map(o=>new Date(o.date||0).getTime()),0);
-      return lb-la;
-    });
-  }
-
+  if(sortBy==='recent')filtered.sort((a,b)=>{
+    const la=Math.max(...(a.orders||[]).map(o=>new Date(o.date||0).getTime()),0);
+    const lb=Math.max(...(b.orders||[]).map(o=>new Date(o.date||0).getTime()),0);
+    return lb-la;
+  });
   const el=document.getElementById('peopleList');
   if(!data.length){el.innerHTML='<div class="empty">Пока никого нет.<br>Нажми ➕ Добавить человека</div>';return}
   if(!filtered.length){el.innerHTML='<div class="empty">Никого не найдено</div>';return}
@@ -620,10 +727,8 @@ function openPerson(id){
   ).join(''):'<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">Платежей пока нет</div>';
 
   const overpayHtml=c.overpay>0.01?'<div class="overpay-note">💰 Переплата: '+c.overpay.toFixed(2)+' BYN</div>':'';
-
   const tel=p.telegram?(p.telegram.replace('@','').replace(/\s/g,'')):'';
-  const rememberBtn=c.remain>0.01&&tel?
-    '<button class="blue" onclick="remind(\''+escapeAttr(tel)+'\','+c.remain.toFixed(2)+')">🔔 Напомнить в Telegram</button>':'';
+  const rememberBtn=c.remain>0.01&&tel?'<button class="blue" onclick="remind(\''+escapeAttr(tel)+'\','+c.remain.toFixed(2)+')">🔔 Напомнить в Telegram</button>':'';
 
   document.getElementById('personDetails').innerHTML=
     '<div class="profile-head">'+
@@ -649,8 +754,8 @@ function openPerson(id){
     '<span class="field-label">Сумма платежа (BYN)</span>'+
     '<input id="pay-amount" type="number" step="0.01" inputmode="decimal" placeholder="например 500">'+
     '<div class="quick-pay">'+
-      '<button class="ghost" onclick="quickPay(\''+p.id+'\',100)">+100</button>'+
-      '<button class="ghost" onclick="quickPay(\''+p.id+'\',500)">+500</button>'+
+      '<button class="ghost" onclick="quickPay('+p.id+',100)">+100</button>'+
+      '<button class="ghost" onclick="quickPay('+p.id+',500)">+500</button>'+
       '<button class="green" onclick="payFull('+p.id+')">Весь остаток</button>'+
     '</div>'+
     '<input id="pay-date" type="date">'+
@@ -675,8 +780,7 @@ function quickPay(personId,amount){
 
 function remind(tel,remain){
   const text='Привет! Напоминаю про долг по заказу: осталось оплатить '+remain+' BYN. Спасибо!';
-  const url='https://t.me/'+tel;
-  window.open(url,'_blank');
+  window.open('https://t.me/'+tel,'_blank');
   navigator.clipboard.writeText(text).then(()=>{
     showModal('🔔 Напоминание','Открыл Telegram.<br>Текст скопирован в буфер — вставь в чат:');
   }).catch(()=>{
@@ -1011,11 +1115,7 @@ function renderStats(){
   const q=(document.getElementById('searchOrders').value||'').toLowerCase().trim();
   let all=[];
   data.forEach(p=>(p.orders||[]).forEach(o=>all.push({person:p,order:o})));
-  if(q)all=all.filter(x=>
-    (x.person.name.toLowerCase().includes(q))||
-    ((x.order.items||'').toLowerCase().includes(q))||
-    ((x.order.category||'').toLowerCase().includes(q))
-  );
+  if(q)all=all.filter(x=>(x.person.name.toLowerCase().includes(q))||((x.order.items||'').toLowerCase().includes(q))||((x.order.category||'').toLowerCase().includes(q)));
   all.sort((a,b)=>(b.order.date||'').localeCompare(a.order.date||''));
   document.getElementById('allOrders').innerHTML=all.length?all.slice(0,50).map(x=>{
     const c=calcOrder(x.order);
@@ -1087,18 +1187,33 @@ function escapeHtml(s){
 }
 function escapeAttr(s){return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;')}
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+
+cloudData = JSON.parse(localStorage.getItem(KEY) || '[]');
 loadTheme();
 checkLock();
 renderMe();
 renderPeople();
 renderPayments();
 renderProfit();
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  });
-}
 renderStats();
+
+const waitFirebase = setInterval(() => {
+  if (window.firebaseReady && window.db) {
+    clearInterval(waitFirebase);
+    startCloudSync();
+  }
+}, 200);
+
+setTimeout(() => {
+  if (!window.firebaseReady) {
+    updateSyncBadge('offline');
+  }
+}, 5000);
 </script>
 </body>
 </html>
