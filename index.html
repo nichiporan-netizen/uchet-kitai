@@ -35,6 +35,12 @@
   console.log('✅ Firebase подключён');
 </script>
 
+<script>
+window.cloudLoaded = false;
+window.cloudLastUpdated = 0;
+window.cloudData = [];
+</script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#16121f;--card:#221b30;--border:#3a2f52;--accent:#a855f7;--accent2:#c084fc;--text:#f0eaff;--text2:#b8a9d9;--text3:#7a6b9e;--green:#4ade80;--yellow:#fbbf24;--blue:#60a5fa;--orange:#fb923c;--red:#f87171}
@@ -446,54 +452,88 @@ let currentOrderId=null;
 let selectedAvatar=AVATARS[0];
 let payFilter='all';
 
-let cloudData = [];
-let localUpdatedAt = 0;
-let lastCloudUpdate = 0;
+// ===== Загрузка из localStorage при старте (быстро) =====
+window.cloudData = JSON.parse(localStorage.getItem(KEY) || '[]');
 
-function load(){ return cloudData; }
+function load(){ return window.cloudData; }
 
 function save(data){
-  cloudData = data;
-  localUpdatedAt = Date.now();
+  window.cloudData = data;
+  const now = Date.now();
   localStorage.setItem(KEY, JSON.stringify(data));
-  updateSyncBadge('syncing');
-  if (window.firebaseReady && window.db) {
-    window.fsSetDoc(window.fsDoc(window.db, "uchet", "main"), {
-      people: data,
-      updated: localUpdatedAt
-    }).then(() => {
-      updateSyncBadge('online');
-    }).catch(err => {
-      console.error('Ошибка сохранения:', err);
-      updateSyncBadge('offline');
-    });
+
+  // ⚠️ НЕ пишем в облако, пока не прочитали его
+  if (!window.cloudLoaded) {
+    console.log('⏳ Жду чтения облака, save() отложен');
+    return;
   }
+  if (!window.firebaseReady || !window.db) return;
+
+  updateSyncBadge('syncing');
+  window.fsSetDoc(window.fsDoc(window.db, "uchet", "main"), {
+    people: data,
+    updated: now
+  }).then(() => {
+    window.cloudLastUpdated = now;
+    updateSyncBadge('online');
+  }).catch(err => {
+    console.error('Ошибка сохранения:', err);
+    updateSyncBadge('offline');
+  });
 }
 
 function startCloudSync(){
   if (!window.firebaseReady || !window.db) return;
+
   window.fsOnSnapshot(
     window.fsDoc(window.db, "uchet", "main"),
     (snap) => {
+      const now = Date.now();
+
       if (snap.exists()) {
         const data = snap.data();
         const cloudPeople = data.people || [];
         const cloudTime = data.updated || 0;
-        if (cloudTime > lastCloudUpdate) {
-          lastCloudUpdate = cloudTime;
-          cloudData = cloudPeople;
+
+        // Первый раз — берём что в облаке
+        if (!window.cloudLoaded) {
+          window.cloudLoaded = true;
+          window.cloudLastUpdated = cloudTime;
+          window.cloudData = cloudPeople;
           localStorage.setItem(KEY, JSON.stringify(cloudPeople));
-          renderMe(); renderPeople(); renderPayments(); renderProfit(); renderStats();
+          renderAll();
+          updateSyncBadge('online');
+          console.log('✅ Загружено из облака:', cloudPeople.length, 'человек');
+          return;
+        }
+
+        // Облако обновилось другим устройством
+        if (cloudTime > window.cloudLastUpdated + 100) {
+          window.cloudLastUpdated = cloudTime;
+          window.cloudData = cloudPeople;
+          localStorage.setItem(KEY, JSON.stringify(cloudPeople));
+          renderAll();
+          console.log('🔄 Обновление из облака:', cloudPeople.length, 'человек');
         }
       } else {
-        // Первый запуск — заливаем локальные данные в облако
+        // Облако пустое — заливаем локальные данные
+        window.cloudLoaded = true;
         const local = JSON.parse(localStorage.getItem(KEY) || '[]');
         if (local.length > 0) {
-          cloudData = local;
-          save(local);
+          window.cloudData = local;
+          const t = Date.now();
+          window.fsSetDoc(window.fsDoc(window.db, "uchet", "main"), {
+            people: local,
+            updated: t
+          }).then(() => {
+            window.cloudLastUpdated = t;
+            updateSyncBadge('online');
+            console.log('✅ Локальные данные залиты в облако:', local.length);
+          });
+        } else {
+          updateSyncBadge('online');
         }
       }
-      updateSyncBadge('online');
     },
     (err) => {
       console.error('Sync ошибка:', err);
@@ -505,9 +545,11 @@ function startCloudSync(){
 function updateSyncBadge(state){
   const b = document.getElementById('syncBadge');
   const t = document.getElementById('syncStatusText');
+  if (!b) return;
   if (state === 'online') {
     b.className = 'sync-badge';
     b.textContent = '☁️ Синхронизировано';
+    b.style.opacity = '1';
     if (t) t.textContent = '✅ Синхронизировано с облаком';
     setTimeout(() => { b.style.opacity = '0.4'; }, 2000);
   } else if (state === 'syncing') {
@@ -521,6 +563,10 @@ function updateSyncBadge(state){
     b.textContent = '⚠️ Нет связи';
     if (t) t.textContent = '⚠️ Нет связи с облаком';
   }
+}
+
+function renderAll(){
+  renderMe(); renderPeople(); renderPayments(); renderProfit(); renderStats();
 }
 
 function loadDefaults(){try{return JSON.parse(localStorage.getItem(DEFAULTS_KEY)||'{}')}catch(e){return{}}}
@@ -1149,9 +1195,11 @@ function importBackup(event){
       const b=JSON.parse(e.target.result);
       if(!b.data||!Array.isArray(b.data))throw new Error('Неверный формат');
       if(!confirm('Заменить все данные? (у тебя '+load().length+', в файле '+b.data.length+')'))return;
+      window.cloudLoaded = true;
       save(b.data);
       if(b.defaults)localStorage.setItem(DEFAULTS_KEY,JSON.stringify(b.defaults));
-      location.reload();
+      renderAll();
+      showModal('✅ Готово','Данные загружены: '+b.data.length+' человек');
     }catch(err){showModal('❌ Ошибка','Файл не прочитан: '+err.message)}
   };
   reader.readAsText(file);
@@ -1193,14 +1241,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-cloudData = JSON.parse(localStorage.getItem(KEY) || '[]');
+// ===== СТАРТ =====
 loadTheme();
 checkLock();
-renderMe();
-renderPeople();
-renderPayments();
-renderProfit();
-renderStats();
+renderAll();
 
 const waitFirebase = setInterval(() => {
   if (window.firebaseReady && window.db) {
@@ -1210,9 +1254,7 @@ const waitFirebase = setInterval(() => {
 }, 200);
 
 setTimeout(() => {
-  if (!window.firebaseReady) {
-    updateSyncBadge('offline');
-  }
+  if (!window.firebaseReady) updateSyncBadge('offline');
 }, 5000);
 </script>
 </body>
