@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Учёт заказов</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   :root {
     --bg: #16121f;
@@ -22,16 +22,21 @@
     --yellow: #fbbf24;
     --blue: #60a5fa;
     --orange: #fb923c;
+    --red: #f87171;
   }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: var(--bg);
     color: var(--text);
-    padding: 16px;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  .container {
     max-width: 600px;
     margin: 0 auto;
-    min-height: 100vh;
+    padding: 16px;
   }
 
   h1 {
@@ -51,6 +56,54 @@
     margin-bottom: 18px;
   }
 
+  /* ============ ЭКРАНЫ ============ */
+  .screen { display: none; }
+  .screen.active { display: block; animation: fade .2s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ============ НИЖНЕЕ МЕНЮ ============ */
+  .menu {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 6px 12px;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+  .menu-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px 4px;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 10px;
+    transition: all .2s;
+    user-select: none;
+  }
+  .menu-item .ico {
+    font-size: 22px;
+    display: block;
+    margin-bottom: 3px;
+    filter: grayscale(1) opacity(.5);
+    transition: all .2s;
+  }
+  .menu-item.active {
+    color: var(--accent2);
+    background: rgba(168,85,247,.12);
+  }
+  .menu-item.active .ico {
+    filter: none;
+    transform: scale(1.15);
+  }
+
+  /* ============ ФОРМА ============ */
   .form {
     background: var(--card);
     border: 1px solid var(--border);
@@ -65,7 +118,7 @@
     font-weight: 700;
   }
 
-  input {
+  input, select {
     width: 100%;
     padding: 13px 14px;
     border-radius: 11px;
@@ -78,13 +131,7 @@
   }
   input::placeholder { color: var(--text3); }
   input:focus { outline: none; border-color: var(--accent); }
-
-  .row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .row input { margin-bottom: 10px; }
+  select { cursor: pointer; }
 
   button {
     width: 100%;
@@ -101,101 +148,22 @@
     transition: opacity .15s;
   }
   button:active { opacity: .85; }
-
-  .person {
-    background: var(--card);
+  button.ghost {
+    background: transparent;
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-    border-left: 5px solid var(--accent);
-  }
-  .person-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    gap: 8px;
-  }
-  .person-name {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--text);
-  }
-  .person-name small {
-    font-size: 12px;
-    color: var(--text3);
-    font-weight: 600;
-    display: block;
-    margin-top: 3px;
-    line-height: 1.4;
-  }
-  .btn-del {
-    width: auto;
-    padding: 6px 12px;
-    font-size: 12px;
-    background: rgba(239,68,68,.15);
-    color: #f87171;
+    color: var(--text2);
     box-shadow: none;
-    border: 1px solid rgba(239,68,68,.3);
+  }
+  button.danger {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    box-shadow: 0 4px 14px rgba(239,68,68,.3);
+  }
+  button.green {
+    background: linear-gradient(135deg, #22c55e, #15803d);
+    box-shadow: 0 4px 14px rgba(34,197,94,.3);
   }
 
-  .stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-  .stat {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 11px;
-    text-align: center;
-  }
-  .stat .val {
-    font-size: 17px;
-    font-weight: 800;
-    display: block;
-    margin-bottom: 3px;
-    word-break: break-all;
-  }
-  .stat .lbl {
-    font-size: 10px;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    font-weight: 700;
-  }
-  .stat.weight .val { color: var(--blue); }
-  .stat.yuan .val { color: var(--yellow); }
-  .stat.rate .val { color: var(--accent2); }
-  .stat.goods .val { color: var(--green); }
-  .stat.deliv .val { color: var(--orange); }
-  .stat.kgrate .val { color: var(--orange); }
-
-  .person-total {
-    background: linear-gradient(135deg, #7c3aed, #a855f7);
-    border-radius: 12px;
-    padding: 14px;
-    text-align: center;
-    margin-top: 4px;
-    box-shadow: 0 4px 14px rgba(168,85,247,.3);
-  }
-  .person-total .lbl {
-    font-size: 10px;
-    color: rgba(255,255,255,.85);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .person-total .val {
-    font-size: 24px;
-    font-weight: 900;
-    color: white;
-  }
-
+  /* ============ ОБЩАЯ СУММА СВЕРХУ ============ */
   .total {
     background: linear-gradient(135deg, #7c3aed, #a855f7);
     border-radius: 16px;
@@ -224,6 +192,221 @@
     margin-top: 6px;
   }
 
+  /* ============ СПИСОК ЛЮДЕЙ ============ */
+  .people-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .person-row {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all .15s;
+    border-left: 4px solid var(--accent);
+  }
+  .person-row:active {
+    background: var(--card2);
+    transform: scale(.98);
+  }
+  .person-row .avatar {
+    font-size: 32px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .person-row .info { flex: 1; min-width: 0; }
+  .person-row .name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .person-row .sub {
+    font-size: 12px;
+    color: var(--text3);
+  }
+  .person-row .amount {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .person-row .amount .byn {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--green);
+  }
+  .person-row .amount .y {
+    font-size: 11px;
+    color: var(--yellow);
+    margin-top: 2px;
+  }
+
+  /* ============ ПРОФИЛЬ ЧЕЛОВЕКА ============ */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 14px;
+    width: auto;
+    box-shadow: none;
+  }
+  .back-btn:active { opacity: .7; }
+
+  .profile-head {
+    background: linear-gradient(135deg, #2f2547, #251d3a);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+  .profile-head .avatar-big {
+    font-size: 56px;
+    margin-bottom: 8px;
+  }
+  .profile-head .name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat .val {
+    font-size: 20px;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 4px;
+    word-break: break-all;
+  }
+  .stat .lbl {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    font-weight: 700;
+  }
+  .stat.weight .val { color: var(--blue); }
+  .stat.yuan .val { color: var(--yellow); }
+  .stat.rate .val { color: var(--accent2); }
+  .stat.goods .val { color: var(--green); }
+  .stat.deliv .val { color: var(--orange); }
+  .stat.kg .val { color: var(--orange); }
+
+  .total-big {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 20px rgba(168,85,247,.3);
+  }
+  .total-big .lbl {
+    font-size: 11px;
+    color: rgba(255,255,255,.85);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .total-big .val {
+    font-size: 28px;
+    font-weight: 900;
+    color: white;
+  }
+
+  .formula {
+    text-align: center;
+    color: var(--text3);
+    font-size: 12px;
+    margin-top: 6px;
+  }
+
+  /* ============ ФОРМА РЕДАКТИРОВАНИЯ ============ */
+  .edit-form {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .edit-form h2 {
+    font-size: 15px;
+    color: var(--accent2);
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+  .field-label {
+    font-size: 12px;
+    color: var(--text3);
+    font-weight: 600;
+    margin-bottom: 5px;
+    margin-top: 4px;
+    display: block;
+  }
+  .row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .row2 input { margin-bottom: 10px; }
+
+  .avatar-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .avatar-opt {
+    font-size: 26px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .avatar-opt:hover { border-color: var(--accent); }
+  .avatar-opt.selected {
+    border-color: var(--accent);
+    background: rgba(168,85,247,.15);
+    transform: scale(1.05);
+  }
+
   .empty {
     text-align: center;
     color: var(--text3);
@@ -233,33 +416,166 @@
     border: 1px dashed var(--border);
     border-radius: 16px;
   }
+
+  .row-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
 </style>
 </head>
 <body>
 
-<h1>💜 Учёт заказов</h1>
-<div class="subtitle">Товар + Доставка по весу</div>
+<div class="container">
 
-<div class="total">
-  <div class="lbl">Общая сумма</div>
-  <div class="val" id="grandTotal">0.00 BYN</div>
-  <div class="sub" id="grandSub">¥ 0.00 · 0.00 кг</div>
+  <!-- ============ ЭКРАН: МОЙ ПРОФИЛЬ ============ -->
+  <div class="screen active" id="screen-me">
+    <h1>👤 Мой профиль</h1>
+    <div class="subtitle">Личный кабинет</div>
+
+    <div class="total">
+      <div class="lbl">Общая сумма по всем людям</div>
+      <div class="val" id="meGrandTotal">0.00 BYN</div>
+      <div class="sub" id="meGrandSub">¥ 0.00 · 0.00 кг · 0 человек</div>
+    </div>
+
+    <div class="edit-form">
+      <h2>🛠️ Мой курс по умолчанию</h2>
+      <span class="field-label">Курс юаня (¥ → BYN)</span>
+      <input id="me-default-rate" type="number" step="0.0001" inputmode="decimal" placeholder="например 0.47">
+
+      <span class="field-label">Курс за 1 кг доставки (BYN)</span>
+      <input id="me-default-kg" type="number" step="0.01" inputmode="decimal" placeholder="например 24">
+
+      <button onclick="saveDefaults()">💾 Сохранить курс</button>
+      <div class="formula">Курс будет подставляться по умолчанию при добавлении нового человека</div>
+    </div>
+
+    <div class="edit-form">
+      <h2>ℹ️ О приложении</h2>
+      <div class="formula" style="text-align:left; line-height:1.6;">
+        <b style="color:var(--text);">Как считается:</b><br>
+        • Сумма BYN = Юани × Курс<br>
+        • Доставка BYN = Вес × Курс за кг<br>
+        • Итого = Сумма + Доставка<br><br>
+        <b style="color:var(--text);">Пример:</b><br>
+        270 ¥ × 0.47 = 126.90 BYN
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ЭКРАН: ЛЮДИ ============ -->
+  <div class="screen" id="screen-people">
+    <h1>👥 Люди</h1>
+    <div class="subtitle">Все, кто заказывал</div>
+
+    <button class="green" onclick="openAddForm()" style="margin-bottom:14px;">➕ Добавить человека</button>
+
+    <div class="people-list" id="peopleList"></div>
+  </div>
+
+  <!-- ============ ЭКРАН: ПРОФИЛЬ ЧЕЛОВЕКА ============ -->
+  <div class="screen" id="screen-person">
+    <button class="back-btn" onclick="goBack()">← Назад к списку</button>
+    <div id="personDetails"></div>
+  </div>
+
+  <!-- ============ ЭКРАН: ФОРМА ДОБАВЛЕНИЯ/РЕДАКТИРОВАНИЯ ============ -->
+  <div class="screen" id="screen-form">
+    <button class="back-btn" onclick="goBack()">← Назад</button>
+    <div class="edit-form">
+      <h2 id="formTitle">➕ Новый человек</h2>
+
+      <span class="field-label">Выбери смайл</span>
+      <div class="avatar-picker" id="avatarPicker"></div>
+
+      <span class="field-label">Имя *</span>
+      <input id="f-name" placeholder="Например: Анна" autocomplete="off">
+
+      <span class="field-label">Вес посылки (кг)</span>
+      <input id="f-weight" placeholder="например 6" type="number" step="0.01" inputmode="decimal">
+
+      <span class="field-label">Сумма в юанях ¥</span>
+      <input id="f-yuan" placeholder="например 270" type="number" step="0.01" inputmode="decimal">
+
+      <div class="row2">
+        <div>
+          <span class="field-label">Курс юаня</span>
+          <input id="f-rate" placeholder="0.47" type="number" step="0.0001" inputmode="decimal">
+        </div>
+        <div>
+          <span class="field-label">Курс за 1 кг</span>
+          <input id="f-kgrate" placeholder="24" type="number" step="0.01" inputmode="decimal">
+        </div>
+      </div>
+
+      <button onclick="savePerson()" id="formSaveBtn">💾 Сохранить</button>
+    </div>
+  </div>
+
+  <!-- ============ ЭКРАН: ОБЩАЯ СУММА ============ -->
+  <div class="screen" id="screen-total">
+    <h1>📊 Общая сумма</h1>
+    <div class="subtitle">Итоги по всем заказам</div>
+
+    <div class="total">
+      <div class="lbl">Итого к оплате (все люди)</div>
+      <div class="val" id="grandTotal">0.00 BYN</div>
+      <div class="sub" id="grandSub">¥ 0.00 · 0.00 кг · 0 человек</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat goods">
+        <span class="val" id="sumGoods">0.00</span>
+        <span class="lbl">Товар BYN</span>
+      </div>
+      <div class="stat deliv">
+        <span class="val" id="sumDeliv">0.00</span>
+        <span class="lbl">Доставка BYN</span>
+      </div>
+      <div class="stat yuan">
+        <span class="val" id="sumYuan">¥0.00</span>
+        <span class="lbl">Всего юаней</span>
+      </div>
+      <div class="stat weight">
+        <span class="val" id="sumWeight">0.00 кг</span>
+        <span class="lbl">Всего веса</span>
+      </div>
+    </div>
+
+    <div class="edit-form">
+      <h2>📋 Разбивка по людям</h2>
+      <div id="totalsBreakdown"></div>
+    </div>
+  </div>
+
 </div>
 
-<div class="form">
-  <h2>➕ Добавить человека</h2>
-  <input id="f-name" placeholder="Имя" autocomplete="off">
-  <input id="f-weight" placeholder="Вес, кг" type="number" step="0.01" inputmode="decimal">
-  <input id="f-kgrate" placeholder="Курс за 1 кг (например 24)" type="number" step="0.01" inputmode="decimal">
-  <input id="f-yuan" placeholder="Сумма в юанях ¥" type="number" step="0.01" inputmode="decimal">
-  <input id="f-rate" placeholder="Курс юаня к BYN" type="number" step="0.0001" inputmode="decimal">
-  <button onclick="addPerson()">💾 Сохранить</button>
+<!-- ============ НИЖНЕЕ МЕНЮ ============ -->
+<div class="menu">
+  <div class="menu-item active" data-screen="me" onclick="switchScreen('me')">
+    <span class="ico">👤</span>
+    Мой профиль
+  </div>
+  <div class="menu-item" data-screen="people" onclick="switchScreen('people')">
+    <span class="ico">👥</span>
+    Люди
+  </div>
+  <div class="menu-item" data-screen="total" onclick="switchScreen('total')">
+    <span class="ico">📊</span>
+    Сумма
+  </div>
 </div>
-
-<div id="list"></div>
 
 <script>
-const KEY = 'orders_v2';
+// ============ НАСТРОЙКИ ПО УМОЛЧАНИЮ ============
+const KEY = 'uchet_v3';
+const DEFAULTS_KEY = 'uchet_defaults_v3';
+
+const AVATARS = ['🧑‍🦰','👩','🧔','👩‍🦱','🧑','👨','👩‍🦳','🧑‍🦱','👨‍🦰','👩‍🦰','🧓','👧','🧒'];
+
+let currentPersonId = null; // если редактируем существующего
+let selectedAvatar = AVATARS[0];
 
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
@@ -267,101 +583,293 @@ function load() {
 }
 function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
 
-function addPerson() {
-  const name   = document.getElementById('f-name').value.trim();
-  const weight = parseFloat(document.getElementById('f-weight').value) || 0;
-  const kgrate = parseFloat(document.getElementById('f-kgrate').value) || 0;
-  const yuan   = parseFloat(document.getElementById('f-yuan').value) || 0;
-  const rate   = parseFloat(document.getElementById('f-rate').value) || 0;
-
-  if (!name)     { alert('Введите имя'); return; }
-  if (rate <= 0) { alert('Введите курс юаня больше нуля'); return; }
-  if (kgrate < 0){ alert('Курс за кг не может быть отрицательным'); return; }
-
-  const goodsByn  = yuan * rate;
-  const delivByn  = weight * kgrate;
-  const totalByn  = goodsByn + delivByn;
-
-  const data = load();
-  data.push({
-    id: Date.now(),
-    name, weight, kgrate, yuan, rate,
-    goodsByn, delivByn, totalByn
-  });
-  save(data);
-
-  ['f-name','f-weight','f-kgrate','f-yuan','f-rate'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-
-  render();
+function loadDefaults() {
+  try { return JSON.parse(localStorage.getItem(DEFAULTS_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveDefaults() {
+  const rate = parseFloat(document.getElementById('me-default-rate').value) || 0;
+  const kg   = parseFloat(document.getElementById('me-default-kg').value) || 0;
+  localStorage.setItem(DEFAULTS_KEY, JSON.stringify({ rate, kg }));
+  alert('✅ Курс по умолчанию сохранён');
+}
+function getDefaults() {
+  return loadDefaults();
 }
 
-function del(id) {
-  if (!confirm('Удалить запись?')) return;
-  const data = load().filter(p => p.id !== id);
-  save(data);
-  render();
+// ============ НАВИГАЦИЯ ============
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+
+  document.getElementById('screen-' + name).classList.add('active');
+  const item = document.querySelector(`.menu-item[data-screen="${name}"]`);
+  if (item) item.classList.add('active');
+
+  window.scrollTo(0, 0);
+
+  if (name === 'me') renderMe();
+  if (name === 'people') renderPeople();
+  if (name === 'total') renderTotal();
 }
 
-function render() {
+function goBack() {
+  // если мы были в персоне или форме — возвращаемся к людям
+  switchScreen('people');
+}
+
+// ============ МОЙ ПРОФИЛЬ ============
+function renderMe() {
+  const def = getDefaults();
+  document.getElementById('me-default-rate').value = def.rate || '';
+  document.getElementById('me-default-kg').value = def.kg || '';
+
   const data = load();
-  const el = document.getElementById('list');
+  const totals = calcTotals(data);
+
+  document.getElementById('meGrandTotal').textContent = totals.totalByn.toFixed(2) + ' BYN';
+  document.getElementById('meGrandSub').textContent =
+    '¥ ' + totals.totalYuan.toFixed(2) + ' · ' +
+    totals.totalWeight.toFixed(2) + ' кг · ' +
+    data.length + ' ' + plural(data.length, 'человек', 'человека', 'человек');
+}
+
+// ============ СПИСОК ЛЮДЕЙ ============
+function renderPeople() {
+  const data = load();
+  const el = document.getElementById('peopleList');
 
   if (!data.length) {
-    el.innerHTML = '<div class="empty">Пока нет записей.<br>Добавь первого человека выше ⬆️</div>';
-    document.getElementById('grandTotal').textContent = '0.00 BYN';
-    document.getElementById('grandSub').textContent = '¥ 0.00 · 0.00 кг';
+    el.innerHTML = '<div class="empty">Пока никого нет.<br>Нажми ➕ Добавить человека</div>';
     return;
   }
 
-  let totalByn = 0;
-  let totalYuan = 0;
-  let totalWeight = 0;
-
   el.innerHTML = data.map(p => {
-    totalByn    += p.totalByn;
-    totalYuan   += p.yuan;
-    totalWeight += p.weight;
-
-    return `<div class="person">
-      <div class="person-header">
-        <div class="person-name">
-          👤 ${escapeHtml(p.name)}
-          <small>курс ¥ = ${p.rate} · курс кг = ${p.kgrate}</small>
-        </div>
-        <button class="btn-del" onclick="del(${p.id})">🗑</button>
+    const totalByn = (p.yuan * p.rate) + (p.weight * p.kgrate);
+    return `<div class="person-row" onclick="openPerson(${p.id})">
+      <div class="avatar">${p.avatar}</div>
+      <div class="info">
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="sub">${p.weight.toFixed(2)} кг · ¥${p.yuan.toFixed(2)}</div>
       </div>
-
-      <div class="stats">
-        <div class="stat weight">
-          <span class="val">${p.weight.toFixed(2)} кг</span>
-          <span class="lbl">Вес</span>
-        </div>
-        <div class="stat yuan">
-          <span class="val">¥${p.yuan.toFixed(2)}</span>
-          <span class="lbl">Юани</span>
-        </div>
-        <div class="stat goods">
-          <span class="val">${p.goodsByn.toFixed(2)}</span>
-          <span class="lbl">Товар BYN</span>
-        </div>
-        <div class="stat deliv">
-          <span class="val">${p.delivByn.toFixed(2)}</span>
-          <span class="lbl">Доставка BYN</span>
-        </div>
-      </div>
-
-      <div class="person-total">
-        <div class="lbl">Итого к оплате</div>
-        <div class="val">${p.totalByn.toFixed(2)} BYN</div>
+      <div class="amount">
+        <div class="byn">${totalByn.toFixed(2)}</div>
+        <div class="y">BYN</div>
       </div>
     </div>`;
   }).join('');
+}
 
-  document.getElementById('grandTotal').textContent = totalByn.toFixed(2) + ' BYN';
+// ============ ПРОФИЛЬ ЧЕЛОВЕКА ============
+function openPerson(id) {
+  const data = load();
+  const p = data.find(x => x.id === id);
+  if (!p) return;
+
+  const goods = p.yuan * p.rate;
+  const deliv = p.weight * p.kgrate;
+  const total = goods + deliv;
+
+  const el = document.getElementById('personDetails');
+  el.innerHTML = `
+    <div class="profile-head">
+      <div class="avatar-big">${p.avatar}</div>
+      <div class="name">${escapeHtml(p.name)}</div>
+    </div>
+
+    <div class="total-big">
+      <div class="lbl">Итого к оплате</div>
+      <div class="val">${total.toFixed(2)} BYN</div>
+      <div class="formula" style="color:rgba(255,255,255,.85);">${p.yuan.toFixed(2)} ¥ × ${p.rate} + ${p.weight.toFixed(2)} кг × ${p.kgrate}</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat weight">
+        <span class="val">${p.weight.toFixed(2)} кг</span>
+        <span class="lbl">Вес</span>
+      </div>
+      <div class="stat yuan">
+        <span class="val">¥${p.yuan.toFixed(2)}</span>
+        <span class="lbl">Юани</span>
+      </div>
+      <div class="stat rate">
+        <span class="val">×${p.rate}</span>
+        <span class="lbl">Курс юаня</span>
+      </div>
+      <div class="stat kg">
+        <span class="val">${p.kgrate} BYN</span>
+        <span class="lbl">Курс за кг</span>
+      </div>
+      <div class="stat goods">
+        <span class="val">${goods.toFixed(2)}</span>
+        <span class="lbl">Товар BYN</span>
+      </div>
+      <div class="stat deliv">
+        <span class="val">${deliv.toFixed(2)}</span>
+        <span class="lbl">Доставка BYN</span>
+      </div>
+    </div>
+
+    <button onclick="openEditForm(${p.id})" style="margin-bottom:10px;">✏️ Редактировать</button>
+    <button class="danger" onclick="deletePerson(${p.id})">🗑 Удалить человека</button>
+  `;
+
+  switchScreen('person');
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  document.querySelector('.menu-item[data-screen="people"]').classList.add('active');
+}
+
+function deletePerson(id) {
+  if (!confirm('Удалить этого человека?')) return;
+  const data = load().filter(p => p.id !== id);
+  save(data);
+  renderPeople();
+  switchScreen('people');
+}
+
+// ============ ФОРМА (ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ) ============
+function openAddForm() {
+  currentPersonId = null;
+  document.getElementById('formTitle').textContent = '➕ Новый человек';
+  document.getElementById('formSaveBtn').textContent = '💾 Сохранить';
+
+  const def = getDefaults();
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-weight').value = '';
+  document.getElementById('f-yuan').value = '';
+  document.getElementById('f-rate').value = def.rate || '';
+  document.getElementById('f-kgrate').value = def.kg || '';
+
+  selectedAvatar = AVATARS[0];
+  renderAvatarPicker();
+
+  switchScreen('form');
+}
+
+function openEditForm(id) {
+  const data = load();
+  const p = data.find(x => x.id === id);
+  if (!p) return;
+
+  currentPersonId = id;
+  document.getElementById('formTitle').textContent = '✏️ Редактировать';
+  document.getElementById('formSaveBtn').textContent = '💾 Обновить';
+
+  document.getElementById('f-name').value = p.name;
+  document.getElementById('f-weight').value = p.weight;
+  document.getElementById('f-yuan').value = p.yuan;
+  document.getElementById('f-rate').value = p.rate;
+  document.getElementById('f-kgrate').value = p.kgrate;
+
+  selectedAvatar = p.avatar;
+  renderAvatarPicker();
+
+  switchScreen('form');
+}
+
+function renderAvatarPicker() {
+  const el = document.getElementById('avatarPicker');
+  el.innerHTML = AVATARS.map(a =>
+    `<div class="avatar-opt ${a === selectedAvatar ? 'selected' : ''}" onclick="pickAvatar('${a}')">${a}</div>`
+  ).join('');
+}
+
+function pickAvatar(a) {
+  selectedAvatar = a;
+  renderAvatarPicker();
+}
+
+function savePerson() {
+  const name   = document.getElementById('f-name').value.trim();
+  const weight = parseFloat(document.getElementById('f-weight').value) || 0;
+  const yuan   = parseFloat(document.getElementById('f-yuan').value) || 0;
+  const rate   = parseFloat(document.getElementById('f-rate').value) || 0;
+  const kgrate = parseFloat(document.getElementById('f-kgrate').value) || 0;
+
+  if (!name)     { alert('Введите имя'); return; }
+  if (rate <= 0) { alert('Введите курс юаня больше нуля'); return; }
+
+  const data = load();
+
+  if (currentPersonId) {
+    // редактирование
+    const idx = data.findIndex(p => p.id === currentPersonId);
+    if (idx >= 0) {
+      data[idx] = { ...data[idx], name, weight, yuan, rate, kgrate, avatar: selectedAvatar };
+    }
+  } else {
+    // добавление
+    data.push({
+      id: Date.now(),
+      name, weight, yuan, rate, kgrate,
+      avatar: selectedAvatar
+    });
+  }
+
+  save(data);
+  switchScreen('people');
+  renderPeople();
+}
+
+// ============ ОБЩАЯ СУММА ============
+function renderTotal() {
+  const data = load();
+  const t = calcTotals(data);
+
+  document.getElementById('grandTotal').textContent = t.totalByn.toFixed(2) + ' BYN';
   document.getElementById('grandSub').textContent =
-    '¥ ' + totalYuan.toFixed(2) + ' · ' + totalWeight.toFixed(2) + ' кг';
+    '¥ ' + t.totalYuan.toFixed(2) + ' · ' +
+    t.totalWeight.toFixed(2) + ' кг · ' +
+    data.length + ' ' + plural(data.length, 'человек', 'человека', 'человек');
+
+  document.getElementById('sumGoods').textContent = t.goodsByn.toFixed(2);
+  document.getElementById('sumDeliv').textContent = t.delivByn.toFixed(2);
+  document.getElementById('sumYuan').textContent = '¥' + t.totalYuan.toFixed(2);
+  document.getElementById('sumWeight').textContent = t.totalWeight.toFixed(2) + ' кг';
+
+  const el = document.getElementById('totalsBreakdown');
+  if (!data.length) {
+    el.innerHTML = '<div class="empty">Пока нет данных</div>';
+    return;
+  }
+
+  el.innerHTML = data.map(p => {
+    const goods = p.yuan * p.rate;
+    const deliv = p.weight * p.kgrate;
+    const total = goods + deliv;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:22px;">${p.avatar}</span>
+        <div>
+          <div style="font-weight:700;color:var(--text);">${escapeHtml(p.name)}</div>
+          <div style="font-size:11px;color:var(--text3);">¥${p.yuan.toFixed(2)} · ${p.weight.toFixed(2)} кг</div>
+        </div>
+      </div>
+      <div style="font-weight:800;color:var(--green);">${total.toFixed(2)} BYN</div>
+    </div>`;
+  }).join('');
+}
+
+// ============ ХЕЛПЕРЫ ============
+function calcTotals(data) {
+  let totalByn = 0, goodsByn = 0, delivByn = 0, totalYuan = 0, totalWeight = 0;
+  data.forEach(p => {
+    const g = p.yuan * p.rate;
+    const d = p.weight * p.kgrate;
+    goodsByn += g;
+    delivByn += d;
+    totalByn += g + d;
+    totalYuan += p.yuan;
+    totalWeight += p.weight;
+  });
+  return { totalByn, goodsByn, delivByn, totalYuan, totalWeight };
+}
+
+function plural(n, one, few, many) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
 }
 
 function escapeHtml(s) {
@@ -370,7 +878,10 @@ function escapeHtml(s) {
   }[c]));
 }
 
-render();
+// ============ СТАРТ ============
+renderMe();
+renderPeople();
+renderTotal();
 </script>
 
 </body>
