@@ -9,7 +9,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDrNY-rPjpUOMk4IqcTqyU5THAUfZIO0Eo",
@@ -26,8 +26,8 @@
   window.fsDoc = doc;
   window.fsSetDoc = setDoc;
   window.fsOnSnapshot = onSnapshot;
-  window.GoogleAuthProvider = GoogleAuthProvider;
-  window.fbSignIn = signInWithPopup;
+  window.fbSignUp = createUserWithEmailAndPassword;
+  window.fbSignIn = signInWithEmailAndPassword;
   window.fbSignOut = signOut;
   window.fbOnAuth = onAuthStateChanged;
   window.fbReady = true;
@@ -131,9 +131,6 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 .pay-row .amounts{text-align:right;flex-shrink:0;min-width:120px}
 .pay-row .total-text{font-size:11px;color:var(--text2);font-weight:600;display:block}
 .pay-row .remain-text{font-size:15px;font-weight:800;margin-top:3px;display:block}
-.tabs-filter{display:flex;gap:6px;margin-bottom:14px;background:var(--card);padding:5px;border-radius:12px;border:1px solid var(--border)}
-.filter-btn{flex:1;padding:10px 6px;text-align:center;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text3);background:transparent;box-shadow:none;margin:0}
-.filter-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white}
 .search-box{position:relative;margin-bottom:14px}
 .search-box input{padding-left:42px;padding-right:44px;background:var(--card);margin:0}
 .search-box .ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
@@ -155,14 +152,13 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 .modal{background:var(--card);border-radius:16px;padding:20px;max-width:400px;width:100%;border:1px solid var(--border);max-height:80vh;overflow-y:auto}
 .modal h3{font-size:17px;margin-bottom:10px;color:var(--accent2)}
 .modal p{font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.5}
-.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:3000;padding:20px;flex-direction:column;text-align:center}
+.login-screen{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:3000;padding:20px;flex-direction:column;text-align:center;overflow-y:auto}
+.login-screen.active{display:flex}
 .login-screen h1{font-size:26px;margin-bottom:6px;background:linear-gradient(90deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900}
-.login-screen p{color:var(--text3);margin-bottom:24px;font-size:14px;max-width:300px;line-height:1.5}
-.google-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:white;color:#1a1428;font-weight:700;padding:14px 24px;border-radius:12px;border:none;cursor:pointer;font-size:15px;max-width:280px;width:100%;box-shadow:0 4px 14px rgba(0,0,0,.2)}
-.google-btn:active{opacity:.85}
-.google-btn svg{width:20px;height:20px}
+.login-screen .form-inner{max-width:340px;width:100%;margin-top:20px}
+.login-screen input{background:var(--card);margin-bottom:12px}
 .user-box{display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;margin-bottom:12px;border:1px solid var(--border)}
-.user-box img{width:44px;height:44px;border-radius:50%;border:2px solid var(--accent)}
+.user-box .avatar-me{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:18px}
 .user-box .info{flex:1;min-width:0;text-align:left}
 .user-box .info .n{font-weight:800;font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .user-box .info .e{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
@@ -182,17 +178,30 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 .chart-bar{background:var(--bg);border-radius:8px;overflow:hidden;height:30px;position:relative;margin-bottom:8px}
 .chart-bar .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:700;color:white;min-width:60px}
 .month-label{font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:700}
+.tab-login{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:12px;margin-bottom:16px;border:1px solid var(--border)}
+.tab-login button{flex:1;padding:12px;border-radius:9px;font-size:14px;font-weight:700;background:transparent;color:var(--text3);box-shadow:none;margin:0}
+.tab-login button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white}
 </style>
 </head>
 <body>
 
-<div class="login-screen" id="loginScreen" style="display:none;">
-  <h1>💜 Учёт заказов</h1>
-  <p>Войди через Google, чтобы синхронизировать данные между устройствами</p>
-  <button class="google-btn" onclick="doLogin()">
-    <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-    Войти через Google
-  </button>
+<!-- ЭКРАН ВХОДА -->
+<div class="login-screen" id="loginScreen">
+  <div class="form-inner">
+    <h1>💜 Учёт заказов</h1>
+    <p style="color:var(--text3);font-size:13px;margin-bottom:20px;">Войди или зарегистрируйся, чтобы синхронизировать данные между устройствами</p>
+
+    <div class="tab-login">
+      <button id="tabLoginBtn" class="active" onclick="switchAuthTab('login')">Войти</button>
+      <button id="tabRegBtn" onclick="switchAuthTab('register')">Регистрация</button>
+    </div>
+
+    <input id="auth-email" type="email" placeholder="Email" autocomplete="email">
+    <input id="auth-password" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="current-password">
+
+    <button id="authSubmitBtn" onclick="doAuth()">Войти</button>
+    <div class="formula" id="authError" style="color:var(--red);min-height:20px;margin-top:8px;"></div>
+  </div>
 </div>
 
 <div class="sync-badge syncing" id="syncBadge" style="display:none;">⏳ Загрузка...</div>
@@ -204,13 +213,13 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
       <button class="icon-btn" onclick="toggleTheme()">🌙</button>
     </div>
 
-    <div class="form" id="accountBox" style="display:none;">
+    <div class="form">
       <h2>👤 Аккаунт</h2>
       <div class="user-box">
-        <img id="userAvatar" src="" alt="">
+        <div class="avatar-me" id="userAvatarLetter">?</div>
         <div class="info">
-          <div class="n" id="userName">—</div>
-          <div class="e" id="userEmail">—</div>
+          <div class="n" id="userEmailLabel">—</div>
+          <div class="e">Синхронизация включена</div>
         </div>
       </div>
       <button class="ghost" onclick="doLogout()">🚪 Выйти</button>
@@ -399,6 +408,7 @@ let userData = [];
 let currentUser = null;
 let unsubSnapshot = null;
 let lastLocalUpdate = 0;
+let authMode = 'login';
 
 function load(){ return userData; }
 
@@ -414,12 +424,46 @@ function save(data){
     .catch(err => { console.error(err); updateSyncBadge('offline'); });
 }
 
-async function doLogin(){
+function switchAuthTab(mode){
+  authMode = mode;
+  const lb = document.getElementById('tabLoginBtn');
+  const rb = document.getElementById('tabRegBtn');
+  const sb = document.getElementById('authSubmitBtn');
+  const err = document.getElementById('authError');
+  err.textContent = '';
+  if (mode === 'login') {
+    lb.classList.add('active'); rb.classList.remove('active');
+    sb.textContent = 'Войти';
+  } else {
+    lb.classList.remove('active'); rb.classList.add('active');
+    sb.textContent = 'Зарегистрироваться';
+  }
+}
+
+async function doAuth(){
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const err = document.getElementById('authError');
+  err.textContent = '';
+
+  if (!email || !password) { err.textContent = 'Заполни email и пароль'; return; }
+  if (password.length < 6) { err.textContent = 'Пароль минимум 6 символов'; return; }
+
   try {
-    const provider = new window.GoogleAuthProvider();
-    await window.fbSignIn(window.auth, provider);
-  } catch(err) {
-    alert('Ошибка входа: ' + err.message);
+    if (authMode === 'register') {
+      await window.fbSignUp(window.auth, email, password);
+    } else {
+      await window.fbSignIn(window.auth, email, password);
+    }
+  } catch(e) {
+    console.error(e);
+    let msg = e.message || 'Ошибка';
+    if (msg.includes('email-already-in-use')) msg = 'Этот email уже зарегистрирован — войди';
+    else if (msg.includes('wrong-password') || msg.includes('invalid-credential')) msg = 'Неверный пароль';
+    else if (msg.includes('user-not-found')) msg = 'Пользователь не найден — зарегистрируйся';
+    else if (msg.includes('weak-password')) msg = 'Пароль слишком простой';
+    else if (msg.includes('invalid-email')) msg = 'Неверный email';
+    err.textContent = msg;
   }
 }
 
@@ -430,15 +474,14 @@ async function doLogout(){
 }
 
 function showApp(){
-  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('loginScreen').classList.remove('active');
   document.getElementById('appContainer').style.display = 'block';
   document.getElementById('appMenu').style.display = 'flex';
   document.getElementById('syncBadge').style.display = 'block';
-  document.getElementById('accountBox').style.display = 'block';
 }
 
 function showLogin(){
-  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginScreen').classList.add('active');
   document.getElementById('appContainer').style.display = 'none';
   document.getElementById('appMenu').style.display = 'none';
   document.getElementById('syncBadge').style.display = 'none';
@@ -588,8 +631,6 @@ function openPerson(id){
   ).join(''):'<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">Платежей пока нет</div>';
 
   const overpayHtml=c.overpay>0.01?'<div style="text-align:center;color:var(--green);font-size:13px;font-weight:700;margin-bottom:12px;padding:8px;background:rgba(74,222,128,.1);border-radius:10px;border:1px solid rgba(74,222,128,.3);">💰 Переплата: '+c.overpay.toFixed(2)+' BYN</div>':'';
-  const tel=p.telegram?(p.telegram.replace('@','').replace(/\s/g,'')):'';
-  const rememberBtn=c.remain>0.01&&tel?'<button class="blue" onclick="remind(\''+tel+'\','+c.remain.toFixed(2)+')">🔔 Напомнить в Telegram</button>':'';
 
   document.getElementById('personDetails').innerHTML=
     '<div class="profile-head">'+
@@ -621,7 +662,6 @@ function openPerson(id){
     '</div>'+
     '<input id="pay-date" type="date">'+
     '<button onclick="addPayment('+p.id+')">➕ Добавить платёж</button>'+
-    rememberBtn+
     '<h2 style="margin-top:16px;">История платежей</h2>'+paymentsHtml+'</div>'+
     '<button onclick="openEditForm('+p.id+')">✏️ Редактировать контакты</button>'+
     '<button class="danger" onclick="deletePerson('+p.id+')">🗑 Удалить человека</button>';
@@ -632,13 +672,6 @@ function openPerson(id){
 }
 
 function quickPay(id,amount){const inp=document.getElementById('pay-amount');const cur=parseFloat(inp.value)||0;inp.value=(cur+amount).toFixed(2);}
-function remind(tel,remain){
-  const text='Привет! Напоминаю про долг: '+remain+' BYN.';
-  window.open('https://t.me/'+tel,'_blank');
-  navigator.clipboard.writeText(text).catch(()=>{});
-  showModal('🔔','Открыл Telegram. Текст скопирован.');
-}
-
 function addPayment(id){
   const amt=parseFloat(document.getElementById('pay-amount').value)||0;
   const dt=document.getElementById('pay-date').value||new Date().toISOString().slice(0,10);
@@ -897,22 +930,18 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 
 loadTheme();
 
-// Ждём Firebase и запускаем авторизацию
+// Старт
 const waitAuth = setInterval(() => {
   if (window.fbReady && window.auth) {
     clearInterval(waitAuth);
-    console.log('🚀 Запускаю проверку авторизации');
+    console.log('🚀 Firebase готов');
     window.fbOnAuth(window.auth, (user) => {
       if (user) {
         console.log('👤 Вошёл:', user.email);
         currentUser = user;
         showApp();
-        const av = document.getElementById('userAvatar');
-        const nm = document.getElementById('userName');
-        const em = document.getElementById('userEmail');
-        if (av) av.src = user.photoURL || '';
-        if (nm) nm.textContent = user.displayName || 'Пользователь';
-        if (em) em.textContent = user.email || '';
+        document.getElementById('userEmailLabel').textContent = user.email;
+        document.getElementById('userAvatarLetter').textContent = (user.email[0] || '?').toUpperCase();
 
         if (unsubSnapshot) unsubSnapshot();
         unsubSnapshot = window.fsOnSnapshot(
@@ -926,7 +955,7 @@ const waitAuth = setInterval(() => {
                 userData = cloudPeople;
                 lastLocalUpdate = cloudTime;
                 renderAll();
-                console.log('☁️ Обновлено из облака:', cloudPeople.length);
+                console.log('☁️ Из облака:', cloudPeople.length);
               }
             } else {
               userData = [];
@@ -937,7 +966,7 @@ const waitAuth = setInterval(() => {
           (err) => { console.error(err); updateSyncBadge('offline'); }
         );
       } else {
-        console.log('🔐 Нет авторизации — показываю экран входа');
+        console.log('🔐 Не авторизован');
         currentUser = null;
         userData = [];
         if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
