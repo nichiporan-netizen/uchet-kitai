@@ -16,6 +16,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDrNY-rPjpUOMk4IqcTqyU5THAUfZIO0Eo",
@@ -28,17 +29,16 @@
 
   const firebaseApp = initializeApp(firebaseConfig);
   window.db = getFirestore(firebaseApp);
+  window.auth = getAuth(firebaseApp);
   window.fsDoc = doc;
   window.fsSetDoc = setDoc;
   window.fsOnSnapshot = onSnapshot;
+  window.GoogleAuthProvider = GoogleAuthProvider;
+  window.fbSignIn = signInWithPopup;
+  window.fbSignOut = signOut;
+  window.fbOnAuth = onAuthStateChanged;
   window.firebaseReady = true;
   console.log('✅ Firebase подключён');
-</script>
-
-<script>
-window.cloudLoaded = false;
-window.cloudLastUpdated = 0;
-window.cloudData = [];
 </script>
 
 <style>
@@ -172,6 +172,12 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 .lock-screen.active{display:flex}
 .lock-screen h2{font-size:22px;margin-bottom:20px;color:var(--accent2)}
 .lock-screen input{max-width:250px;text-align:center;font-size:24px;letter-spacing:8px;margin-bottom:12px}
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:3000;padding:20px;flex-direction:column;text-align:center}
+.login-screen h1{font-size:26px;margin-bottom:6px;background:linear-gradient(90deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900}
+.login-screen p{color:var(--text3);margin-bottom:24px;font-size:14px;max-width:300px;line-height:1.5}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:white;color:#1a1428;font-weight:700;padding:14px 24px;border-radius:12px;border:none;cursor:pointer;font-size:15px;max-width:280px;width:100%;box-shadow:0 4px 14px rgba(0,0,0,.2);margin-bottom:12px}
+.google-btn:active{opacity:.85}
+.google-btn svg{width:20px;height:20px}
 .chart-bar{background:var(--bg);border-radius:8px;overflow:hidden;height:30px;position:relative;margin-bottom:8px}
 .chart-bar .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:700;color:white;min-width:60px}
 .month-label{font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:700}
@@ -193,11 +199,27 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 .sync-badge{position:fixed;bottom:80px;right:12px;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;z-index:99;transition:opacity .3s;background:rgba(74,222,128,.2);color:var(--green);border:1px solid rgba(74,222,128,.4)}
 .sync-badge.syncing{background:rgba(251,191,36,.2);color:var(--yellow);border-color:rgba(251,191,36,.4)}
 .sync-badge.offline{background:rgba(248,113,113,.2);color:var(--red);border-color:rgba(248,113,113,.4)}
+.user-box{display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;margin-bottom:12px;border:1px solid var(--border)}
+.user-box img{width:44px;height:44px;border-radius:50%;border:2px solid var(--accent)}
+.user-box .info{flex:1;min-width:0;text-align:left}
+.user-box .info .n{font-weight:800;font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-box .info .e{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 </style>
 </head>
 <body>
 
-<div class="sync-badge syncing" id="syncBadge">⏳ Подключение...</div>
+<!-- ЭКРАН ВХОДА -->
+<div class="login-screen" id="loginScreen">
+  <h1>💜 Учёт заказов</h1>
+  <p>Войди через Google, чтобы синхронизировать данные между всеми устройствами</p>
+  <button class="google-btn" onclick="doLogin()">
+    <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    Войти через Google
+  </button>
+  <div class="formula" style="max-width:280px;">Данные хранятся в защищённом облаке и доступны только тебе</div>
+</div>
+
+<div class="sync-badge syncing" id="syncBadge">⏳ Загрузка...</div>
 
 <div class="lock-screen" id="lockScreen">
   <h2>🔐 Введите PIN</h2>
@@ -205,13 +227,26 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
   <button onclick="tryUnlock()">Войти</button>
 </div>
 
-<div class="container">
+<div class="container" id="appContainer" style="display:none;">
 
   <div class="screen active" id="screen-me">
     <div class="top-bar">
       <h1>👤 Мой профиль</h1>
       <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
     </div>
+
+    <div class="form">
+      <h2>👤 Аккаунт</h2>
+      <div class="user-box" id="userBox">
+        <img id="userAvatar" src="" alt="">
+        <div class="info">
+          <div class="n" id="userName">—</div>
+          <div class="e" id="userEmail">—</div>
+        </div>
+      </div>
+      <button class="ghost" onclick="doLogout()">🚪 Выйти</button>
+    </div>
+
     <div class="total">
       <div class="lbl">Общая сумма</div>
       <div class="val" id="meGrandTotal">0.00 BYN</div>
@@ -241,21 +276,9 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
     <div class="form">
       <h2>☁️ Синхронизация</h2>
       <div class="formula" style="text-align:left">
-        <b style="color:var(--text)">Статус:</b> <span id="syncStatusText">Подключение...</span><br>
-        <b style="color:var(--text)">Проект:</b> uchet-kitai<br>
-        <b style="color:var(--text)">Устройство:</b> <span id="deviceInfo"></span><br><br>
-        Данные автоматически сохраняются в облако Google Firebase.<br>
-        Открой приложение на любом устройстве — увидишь одни и те же данные.
-      </div>
-    </div>
-    <div class="form">
-      <h2>ℹ️ Формулы</h2>
-      <div class="formula" style="text-align:left">
-        • Сумма BYN = Юани × Курс<br>
-        • Доставка = Вес × Курс за кг<br>
-        • Итого = Сумма + Доставка<br>
-        • Остаток = Итого − Оплачено<br>
-        • Прибыль = Доход − Расход
+        <b style="color:var(--text)">Статус:</b> <span id="syncStatusText">—</span><br>
+        <b style="color:var(--text)">Аккаунт:</b> <span id="deviceInfo">—</span><br><br>
+        Данные автоматически сохраняются в облако и доступны только тебе.
       </div>
     </div>
   </div>
@@ -420,7 +443,7 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 
 </div>
 
-<div class="menu">
+<div class="menu" id="appMenu" style="display:none;">
   <div class="menu-item active" data-screen="me" onclick="switchScreen('me')"><span class="ico">👤</span>Профиль</div>
   <div class="menu-item" data-screen="people" onclick="switchScreen('people')"><span class="ico">👥</span>Люди</div>
   <div class="menu-item" data-screen="payments" onclick="switchScreen('payments')"><span class="ico">💰</span>Оплаты</div>
@@ -437,7 +460,6 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 </div>
 
 <script>
-const KEY='uchet_v6';
 const DEFAULTS_KEY='uchet_defaults_v6';
 const THEME_KEY='uchet_theme_v6';
 const PIN_KEY='uchet_pin_v6';
@@ -452,94 +474,54 @@ let currentOrderId=null;
 let selectedAvatar=AVATARS[0];
 let payFilter='all';
 
-// ===== Загрузка из localStorage при старте (быстро) =====
-window.cloudData = JSON.parse(localStorage.getItem(KEY) || '[]');
+let userData = [];
+let currentUser = null;
+let unsubSnapshot = null;
+let lastLocalUpdate = 0;
 
-function load(){ return window.cloudData; }
+function load(){ return userData; }
 
 function save(data){
-  window.cloudData = data;
-  const now = Date.now();
-  localStorage.setItem(KEY, JSON.stringify(data));
-
-  // ⚠️ НЕ пишем в облако, пока не прочитали его
-  if (!window.cloudLoaded) {
-    console.log('⏳ Жду чтения облака, save() отложен');
-    return;
-  }
-  if (!window.firebaseReady || !window.db) return;
+  userData = data;
+  lastLocalUpdate = Date.now();
+  if (!currentUser || !window.db) return;
 
   updateSyncBadge('syncing');
-  window.fsSetDoc(window.fsDoc(window.db, "uchet", "main"), {
+  window.fsSetDoc(window.fsDoc(window.db, "users", currentUser.uid), {
     people: data,
-    updated: now
-  }).then(() => {
-    window.cloudLastUpdated = now;
-    updateSyncBadge('online');
-  }).catch(err => {
-    console.error('Ошибка сохранения:', err);
-    updateSyncBadge('offline');
-  });
+    updated: lastLocalUpdate,
+    email: currentUser.email || '',
+    name: currentUser.displayName || ''
+  }).then(() => updateSyncBadge('online'))
+    .catch(err => { console.error('Save error:', err); updateSyncBadge('offline'); });
 }
 
-function startCloudSync(){
-  if (!window.firebaseReady || !window.db) return;
+async function doLogin(){
+  try {
+    const provider = new window.GoogleAuthProvider();
+    await window.fbSignIn(window.auth, provider);
+  } catch(err) {
+    console.error('Login error:', err);
+    alert('Ошибка входа: ' + err.message);
+  }
+}
 
-  window.fsOnSnapshot(
-    window.fsDoc(window.db, "uchet", "main"),
-    (snap) => {
-      const now = Date.now();
+async function doLogout(){
+  if (!confirm('Выйти из аккаунта?')) return;
+  if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
+  await window.fbSignOut(window.auth);
+}
 
-      if (snap.exists()) {
-        const data = snap.data();
-        const cloudPeople = data.people || [];
-        const cloudTime = data.updated || 0;
+function showApp(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appContainer').style.display = 'block';
+  document.getElementById('appMenu').style.display = 'flex';
+}
 
-        // Первый раз — берём что в облаке
-        if (!window.cloudLoaded) {
-          window.cloudLoaded = true;
-          window.cloudLastUpdated = cloudTime;
-          window.cloudData = cloudPeople;
-          localStorage.setItem(KEY, JSON.stringify(cloudPeople));
-          renderAll();
-          updateSyncBadge('online');
-          console.log('✅ Загружено из облака:', cloudPeople.length, 'человек');
-          return;
-        }
-
-        // Облако обновилось другим устройством
-        if (cloudTime > window.cloudLastUpdated + 100) {
-          window.cloudLastUpdated = cloudTime;
-          window.cloudData = cloudPeople;
-          localStorage.setItem(KEY, JSON.stringify(cloudPeople));
-          renderAll();
-          console.log('🔄 Обновление из облака:', cloudPeople.length, 'человек');
-        }
-      } else {
-        // Облако пустое — заливаем локальные данные
-        window.cloudLoaded = true;
-        const local = JSON.parse(localStorage.getItem(KEY) || '[]');
-        if (local.length > 0) {
-          window.cloudData = local;
-          const t = Date.now();
-          window.fsSetDoc(window.fsDoc(window.db, "uchet", "main"), {
-            people: local,
-            updated: t
-          }).then(() => {
-            window.cloudLastUpdated = t;
-            updateSyncBadge('online');
-            console.log('✅ Локальные данные залиты в облако:', local.length);
-          });
-        } else {
-          updateSyncBadge('online');
-        }
-      }
-    },
-    (err) => {
-      console.error('Sync ошибка:', err);
-      updateSyncBadge('offline');
-    }
-  );
+function showLogin(){
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appContainer').style.display = 'none';
+  document.getElementById('appMenu').style.display = 'none';
 }
 
 function updateSyncBadge(state){
@@ -550,7 +532,7 @@ function updateSyncBadge(state){
     b.className = 'sync-badge';
     b.textContent = '☁️ Синхронизировано';
     b.style.opacity = '1';
-    if (t) t.textContent = '✅ Синхронизировано с облаком';
+    if (t) t.textContent = '✅ Синхронизировано';
     setTimeout(() => { b.style.opacity = '0.4'; }, 2000);
   } else if (state === 'syncing') {
     b.className = 'sync-badge syncing';
@@ -561,13 +543,11 @@ function updateSyncBadge(state){
     b.className = 'sync-badge offline';
     b.style.opacity = '1';
     b.textContent = '⚠️ Нет связи';
-    if (t) t.textContent = '⚠️ Нет связи с облаком';
+    if (t) t.textContent = '⚠️ Нет связи';
   }
 }
 
-function renderAll(){
-  renderMe(); renderPeople(); renderPayments(); renderProfit(); renderStats();
-}
+function renderAll(){ renderMe(); renderPeople(); renderPayments(); renderProfit(); renderStats(); }
 
 function loadDefaults(){try{return JSON.parse(localStorage.getItem(DEFAULTS_KEY)||'{}')}catch(e){return{}}}
 function getDefaults(){return loadDefaults()}
@@ -658,7 +638,9 @@ function savePin(){
   else localStorage.removeItem(PIN_KEY);
   showModal('✅ Готово',pin?'PIN сохранён':'PIN отключён');
 }
-function checkLock(){if(loadPin())document.getElementById('lockScreen').classList.add('active')}
+function checkLock(){
+  if(loadPin())document.getElementById('lockScreen').classList.add('active');
+}
 function tryUnlock(){
   const inp=document.getElementById('pinInput').value.trim();
   if(inp===loadPin()){
@@ -679,9 +661,10 @@ function renderMe(){
   const t=calcTotals(data);
   document.getElementById('meGrandTotal').textContent=t.totalByn.toFixed(2)+' BYN';
   document.getElementById('meGrandSub').textContent='¥'+t.totalYuan.toFixed(2)+' · '+t.totalWeight.toFixed(2)+' кг · '+data.length+' '+plural(data.length,'человек','человека','человек');
-  const dev = /iPhone|iPad/.test(navigator.userAgent) ? 'iPhone' : (/Android/.test(navigator.userAgent) ? 'Android' : 'ПК');
-  const di = document.getElementById('deviceInfo');
-  if (di) di.textContent = dev;
+  if (currentUser) {
+    const di = document.getElementById('deviceInfo');
+    if (di) di.textContent = currentUser.email || 'Google';
+  }
 }
 
 function onSearchInput(){
@@ -828,7 +811,7 @@ function remind(tel,remain){
   const text='Привет! Напоминаю про долг по заказу: осталось оплатить '+remain+' BYN. Спасибо!';
   window.open('https://t.me/'+tel,'_blank');
   navigator.clipboard.writeText(text).then(()=>{
-    showModal('🔔 Напоминание','Открыл Telegram.<br>Текст скопирован в буфер — вставь в чат:');
+    showModal('🔔 Напоминание','Открыл Telegram.<br>Текст скопирован в буфер.');
   }).catch(()=>{
     showModal('🔔 Напоминание','Текст для отправки:<br><br>'+text);
   });
@@ -1195,7 +1178,6 @@ function importBackup(event){
       const b=JSON.parse(e.target.result);
       if(!b.data||!Array.isArray(b.data))throw new Error('Неверный формат');
       if(!confirm('Заменить все данные? (у тебя '+load().length+', в файле '+b.data.length+')'))return;
-      window.cloudLoaded = true;
       save(b.data);
       if(b.defaults)localStorage.setItem(DEFAULTS_KEY,JSON.stringify(b.defaults));
       renderAll();
@@ -1241,15 +1223,57 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ===== СТАРТ =====
 loadTheme();
 checkLock();
-renderAll();
 
-const waitFirebase = setInterval(() => {
-  if (window.firebaseReady && window.db) {
-    clearInterval(waitFirebase);
-    startCloudSync();
+// Слушаем состояние авторизации
+const waitAuth = setInterval(() => {
+  if (window.firebaseReady && window.auth) {
+    clearInterval(waitAuth);
+    window.fbOnAuth(window.auth, (user) => {
+      if (user) {
+        currentUser = user;
+        showApp();
+        const av = document.getElementById('userAvatar');
+        const nm = document.getElementById('userName');
+        const em = document.getElementById('userEmail');
+        if (av) av.src = user.photoURL || '';
+        if (nm) nm.textContent = user.displayName || 'Пользователь';
+        if (em) em.textContent = user.email || '';
+
+        // Слушаем данные пользователя
+        if (unsubSnapshot) unsubSnapshot();
+        unsubSnapshot = window.fsOnSnapshot(
+          window.fsDoc(window.db, "users", user.uid),
+          (snap) => {
+            if (snap.exists()) {
+              const d = snap.data();
+              const cloudData = d.people || [];
+              const cloudTime = d.updated || 0;
+              if (cloudTime > lastLocalUpdate) {
+                userData = cloudData;
+                lastLocalUpdate = cloudTime;
+                renderAll();
+              }
+            } else {
+              // Первый вход — пусто
+              userData = [];
+              renderAll();
+            }
+            updateSyncBadge('online');
+          },
+          (err) => {
+            console.error('Snapshot error:', err);
+            updateSyncBadge('offline');
+          }
+        );
+      } else {
+        currentUser = null;
+        userData = [];
+        if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
+        showLogin();
+      }
+    });
   }
 }, 200);
 
