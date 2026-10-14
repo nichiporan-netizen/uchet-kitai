@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -5,34 +6,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Учёт заказов</title>
 <meta name="theme-color" content="#a855f7">
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDrNY-rPjpUOMk4IqcTqyU5THAUfZIO0Eo",
-    authDomain: "uchet-kitai.firebaseapp.com",
-    projectId: "uchet-kitai",
-    storageBucket: "uchet-kitai.firebasestorage.app",
-    messagingSenderId: "504408507501",
-    appId: "1:504408507501:web:e2fb6c5b48ddbd251feb64"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  window.db = getFirestore(app);
-  window.auth = getAuth(app);
-  window.fsDoc = doc;
-  window.fsSetDoc = setDoc;
-  window.fsOnSnapshot = onSnapshot;
-  window.fbSignUp = createUserWithEmailAndPassword;
-  window.fbSignIn = signInWithEmailAndPassword;
-  window.fbSignOut = signOut;
-  window.fbOnAuth = onAuthStateChanged;
-  window.fbReady = true;
-  console.log('✅ Firebase подключён');
-</script>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -152,19 +127,6 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 .modal{background:var(--card);border-radius:16px;padding:20px;max-width:400px;width:100%;border:1px solid var(--border);max-height:80vh;overflow-y:auto}
 .modal h3{font-size:17px;margin-bottom:10px;color:var(--accent2)}
 .modal p{font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.5}
-.login-screen{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:3000;padding:20px;flex-direction:column;text-align:center;overflow-y:auto}
-.login-screen.active{display:flex}
-.login-screen h1{font-size:26px;margin-bottom:6px;background:linear-gradient(90deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900}
-.login-screen .form-inner{max-width:340px;width:100%;margin-top:20px}
-.login-screen input{background:var(--card);margin-bottom:12px}
-.user-box{display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;margin-bottom:12px;border:1px solid var(--border)}
-.user-box .avatar-me{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:18px}
-.user-box .info{flex:1;min-width:0;text-align:left}
-.user-box .info .n{font-weight:800;font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.user-box .info .e{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.sync-badge{position:fixed;bottom:80px;right:12px;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;z-index:99;background:rgba(74,222,128,.2);color:var(--green);border:1px solid rgba(74,222,128,.4)}
-.sync-badge.syncing{background:rgba(251,191,36,.2);color:var(--yellow);border-color:rgba(251,191,36,.4)}
-.sync-badge.offline{background:rgba(248,113,113,.2);color:var(--red);border-color:rgba(248,113,113,.4)}
 .profit-bar{display:flex;gap:8px;margin-bottom:14px}
 .profit-bar .pb{flex:1;padding:12px;border-radius:12px;text-align:center}
 .profit-bar .income{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3)}
@@ -178,59 +140,34 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 .chart-bar{background:var(--bg);border-radius:8px;overflow:hidden;height:30px;position:relative;margin-bottom:8px}
 .chart-bar .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:700;color:white;min-width:60px}
 .month-label{font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:700}
-.tab-login{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:12px;margin-bottom:16px;border:1px solid var(--border)}
-.tab-login button{flex:1;padding:12px;border-radius:9px;font-size:14px;font-weight:700;background:transparent;color:var(--text3);box-shadow:none;margin:0}
-.tab-login button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white}
+.archive-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer}
+.archive-card .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.archive-card .month-name{font-size:18px;font-weight:800;color:var(--accent2)}
+.archive-card .month-total{font-size:16px;font-weight:800;color:var(--green)}
+.archive-card .stats{font-size:12px;color:var(--text3);display:flex;gap:12px;flex-wrap:wrap}
+.archive-card .stats b{color:var(--text2)}
+.close-month-box{background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:16px;padding:16px;margin-bottom:16px;text-align:center}
+.close-month-box h3{font-size:16px;color:white;margin-bottom:8px}
+.close-month-box p{font-size:12px;color:rgba(255,255,255,.85);margin-bottom:12px;line-height:1.5}
+.close-month-box button{background:white;color:#7c3aed;font-weight:800;margin:0}
+.close-month-box button:active{opacity:.85}
 </style>
 </head>
 <body>
 
-<!-- ЭКРАН ВХОДА -->
-<div class="login-screen" id="loginScreen">
-  <div class="form-inner">
-    <h1>💜 Учёт заказов</h1>
-    <p style="color:var(--text3);font-size:13px;margin-bottom:20px;">Войди или зарегистрируйся, чтобы синхронизировать данные между устройствами</p>
+<div class="container">
 
-    <div class="tab-login">
-      <button id="tabLoginBtn" class="active" onclick="switchAuthTab('login')">Войти</button>
-      <button id="tabRegBtn" onclick="switchAuthTab('register')">Регистрация</button>
-    </div>
-
-    <input id="auth-email" type="email" placeholder="Email" autocomplete="email">
-    <input id="auth-password" type="password" placeholder="Пароль (мин. 6 символов)" autocomplete="current-password">
-
-    <button id="authSubmitBtn" onclick="doAuth()">Войти</button>
-    <div class="formula" id="authError" style="color:var(--red);min-height:20px;margin-top:8px;"></div>
-  </div>
-</div>
-
-<div class="sync-badge syncing" id="syncBadge" style="display:none;">⏳ Загрузка...</div>
-
-<div class="container" id="appContainer" style="display:none;">
+  <!-- ПРОФИЛЬ -->
   <div class="screen active" id="screen-me">
     <div class="top-bar">
       <h1>👤 Мой профиль</h1>
-      <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+      <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
     </div>
-
-    <div class="form">
-      <h2>👤 Аккаунт</h2>
-      <div class="user-box">
-        <div class="avatar-me" id="userAvatarLetter">?</div>
-        <div class="info">
-          <div class="n" id="userEmailLabel">—</div>
-          <div class="e">Синхронизация включена</div>
-        </div>
-      </div>
-      <button class="ghost" onclick="doLogout()">🚪 Выйти</button>
-    </div>
-
     <div class="total">
-      <div class="lbl">Общая сумма</div>
+      <div class="lbl">Общая сумма (текущий месяц)</div>
       <div class="val" id="meGrandTotal">0.00 BYN</div>
       <div class="sub" id="meGrandSub">¥ 0.00 · 0.00 кг · 0 человек</div>
     </div>
-
     <div class="form">
       <h2>🛠️ Курсы по умолчанию</h2>
       <span class="field-label">Курс юаня (¥ → BYN)</span>
@@ -239,7 +176,6 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
       <input id="me-default-kg" type="number" step="0.01" inputmode="decimal" placeholder="24">
       <button onclick="saveDefaults()">💾 Сохранить курс</button>
     </div>
-
     <div class="form">
       <h2>💾 Резервная копия</h2>
       <button class="green" onclick="exportBackup()">📤 Скачать базу (JSON)</button>
@@ -247,10 +183,24 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
       <button class="ghost" onclick="exportCSV()">📊 Экспорт в Excel (CSV)</button>
     </div>
+    <div class="form">
+      <h2>ℹ️ Формулы</h2>
+      <div class="formula" style="text-align:left">
+        • Сумма BYN = Юани × Курс<br>
+        • Доставка = Вес × Курс за кг<br>
+        • Итого = Сумма + Доставка<br>
+        • Остаток = Итого − Оплачено<br>
+        • Прибыль = Доход − Расход
+      </div>
+    </div>
   </div>
 
+  <!-- ЛЮДИ -->
   <div class="screen" id="screen-people">
-    <div class="top-bar"><h1>👥 Люди</h1><button class="icon-btn" onclick="toggleTheme()">🌙</button></div>
+    <div class="top-bar">
+      <h1>👥 Люди</h1>
+      <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    </div>
     <div class="search-box">
       <span class="ico">🔍</span>
       <input id="searchPeople" placeholder="Поиск по имени..." oninput="onSearchInput()">
@@ -266,11 +216,13 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
     <div class="people-list" id="peopleList"></div>
   </div>
 
+  <!-- ПРОФИЛЬ ЧЕЛОВЕКА -->
   <div class="screen" id="screen-person">
     <button class="back-btn" onclick="goBack()">← Назад</button>
     <div id="personDetails"></div>
   </div>
 
+  <!-- ФОРМА ЧЕЛОВЕКА -->
   <div class="screen" id="screen-form">
     <button class="back-btn" onclick="goBack()">← Назад</button>
     <div class="form">
@@ -287,6 +239,7 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
     </div>
   </div>
 
+  <!-- ЗАКАЗ -->
   <div class="screen" id="screen-order">
     <button class="back-btn" onclick="openPerson(currentOrderPersonId)">← Назад</button>
     <div class="form">
@@ -338,8 +291,12 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
     </div>
   </div>
 
+  <!-- ОПЛАТЫ -->
   <div class="screen" id="screen-payments">
-    <div class="top-bar"><h1>💰 Оплаты</h1><button class="icon-btn" onclick="toggleTheme()">🌙</button></div>
+    <div class="top-bar">
+      <h1>💰 Оплаты</h1>
+      <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    </div>
     <div class="total">
       <div class="lbl">Всего получено</div>
       <div class="val" id="totalPaid">0.00 BYN</div>
@@ -354,18 +311,49 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
     <div id="paymentsList"></div>
   </div>
 
+  <!-- ПРИБЫЛЬ -->
   <div class="screen" id="screen-profit">
-    <div class="top-bar"><h1>💵 Прибыль</h1><button class="icon-btn" onclick="toggleTheme()">🌙</button></div>
+    <div class="top-bar">
+      <h1>💵 Прибыль</h1>
+      <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    </div>
     <div class="profit-bar">
       <div class="pb income"><span class="v" id="totalIncome">0</span><span class="l">Доход</span></div>
       <div class="pb expense"><span class="v" id="totalExpense">0</span><span class="l">Расход</span></div>
       <div class="pb profit"><span class="v" id="totalProfit">0</span><span class="l">Прибыль</span></div>
     </div>
     <div class="form"><h2>📅 По месяцам</h2><div id="profitMonthly"></div></div>
+    <div class="form"><h2>🗂️ По категориям</h2><div id="categoryStats"></div></div>
   </div>
 
+  <!-- ИСТОРИЯ -->
+  <div class="screen" id="screen-archive">
+    <div class="top-bar">
+      <h1>📚 История месяцев</h1>
+      <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+
+    <div class="close-month-box">
+      <h3>🔒 Закрыть текущий месяц</h3>
+      <p>Все люди и заказы уйдут в историю. Список обнулится для нового месяца.</p>
+      <button onclick="closeMonth()">📦 Закрыть месяц</button>
+    </div>
+
+    <div id="archiveList"></div>
+  </div>
+
+  <!-- ПРОСМОТР АРХИВА -->
+  <div class="screen" id="screen-archive-view">
+    <button class="back-btn" onclick="switchScreen('archive')">← Назад</button>
+    <div id="archiveDetails"></div>
+  </div>
+
+  <!-- СТАТИСТИКА -->
   <div class="screen" id="screen-stats">
-    <div class="top-bar"><h1>📈 Статистика</h1><button class="icon-btn" onclick="toggleTheme()">🌙</button></div>
+    <div class="top-bar">
+      <h1>📈 Статистика</h1>
+      <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+    </div>
     <div class="total">
       <div class="lbl">Всего за всё время</div>
       <div class="val" id="statsTotal">0.00 BYN</div>
@@ -376,11 +364,11 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
   </div>
 </div>
 
-<div class="menu" id="appMenu" style="display:none;">
+<div class="menu">
   <div class="menu-item active" data-screen="me" onclick="switchScreen('me')"><span class="ico">👤</span>Профиль</div>
   <div class="menu-item" data-screen="people" onclick="switchScreen('people')"><span class="ico">👥</span>Люди</div>
   <div class="menu-item" data-screen="payments" onclick="switchScreen('payments')"><span class="ico">💰</span>Оплаты</div>
-  <div class="menu-item" data-screen="profit" onclick="switchScreen('profit')"><span class="ico">💵</span>Прибыль</div>
+  <div class="menu-item" data-screen="archive" onclick="switchScreen('archive')"><span class="ico">📚</span>История</div>
   <div class="menu-item" data-screen="stats" onclick="switchScreen('stats')"><span class="ico">📈</span>Статистика</div>
 </div>
 
@@ -393,112 +381,29 @@ button.small{width:auto;padding:8px 14px;font-size:13px;margin:0}
 </div>
 
 <script>
-const DEFAULTS_KEY='uchet_defaults_v6';
-const THEME_KEY='uchet_theme_v6';
+const KEY='uchet_people_v7';
+const ARCHIVE_KEY='uchet_archive_v7';
+const DEFAULTS_KEY='uchet_defaults_v7';
+const THEME_KEY='uchet_theme_v7';
 const AVATARS=['🧑‍🦰','👩','🧔','👩‍🦱','🧑','👨','👩‍🦳','🧑‍🦱','👨‍🦰','👩‍🦰','🧓','👧','🧒'];
 const STATUS_LABELS={ordered:'Заказано',shipped:'В пути',arrived:'На складе',issued:'Выдано'};
 const STATUS_ICONS={ordered:'🟡',shipped:'🚚',arrived:'🛬',issued:'✅'};
 const CATEGORY_ICONS={'Одежда':'👕','Обувь':'👟','Техника':'📱','Косметика':'💄','Детское':'🧸','Аксессуары':'👜','Дом':'🏠','Другое':'📦','':''};
+const MONTH_NAMES=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 
 let currentPersonId=null;
 let currentOrderPersonId=null;
 let currentOrderId=null;
 let selectedAvatar=AVATARS[0];
-let userData = [];
-let currentUser = null;
-let unsubSnapshot = null;
-let lastLocalUpdate = 0;
-let authMode = 'login';
+let currentArchiveKey=null;
 
-function load(){ return userData; }
-
-function save(data){
-  userData = data;
-  lastLocalUpdate = Date.now();
-  if (!currentUser || !window.db) return;
-  updateSyncBadge('syncing');
-  window.fsSetDoc(window.fsDoc(window.db, "users", currentUser.uid), {
-    people: data,
-    updated: lastLocalUpdate
-  }).then(() => updateSyncBadge('online'))
-    .catch(err => { console.error(err); updateSyncBadge('offline'); });
-}
-
-function switchAuthTab(mode){
-  authMode = mode;
-  const lb = document.getElementById('tabLoginBtn');
-  const rb = document.getElementById('tabRegBtn');
-  const sb = document.getElementById('authSubmitBtn');
-  const err = document.getElementById('authError');
-  err.textContent = '';
-  if (mode === 'login') {
-    lb.classList.add('active'); rb.classList.remove('active');
-    sb.textContent = 'Войти';
-  } else {
-    lb.classList.remove('active'); rb.classList.add('active');
-    sb.textContent = 'Зарегистрироваться';
-  }
-}
-
-async function doAuth(){
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const err = document.getElementById('authError');
-  err.textContent = '';
-
-  if (!email || !password) { err.textContent = 'Заполни email и пароль'; return; }
-  if (password.length < 6) { err.textContent = 'Пароль минимум 6 символов'; return; }
-
-  try {
-    if (authMode === 'register') {
-      await window.fbSignUp(window.auth, email, password);
-    } else {
-      await window.fbSignIn(window.auth, email, password);
-    }
-  } catch(e) {
-    console.error(e);
-    let msg = e.message || 'Ошибка';
-    if (msg.includes('email-already-in-use')) msg = 'Этот email уже зарегистрирован — войди';
-    else if (msg.includes('wrong-password') || msg.includes('invalid-credential')) msg = 'Неверный пароль';
-    else if (msg.includes('user-not-found')) msg = 'Пользователь не найден — зарегистрируйся';
-    else if (msg.includes('weak-password')) msg = 'Пароль слишком простой';
-    else if (msg.includes('invalid-email')) msg = 'Неверный email';
-    err.textContent = msg;
-  }
-}
-
-async function doLogout(){
-  if (!confirm('Выйти из аккаунта?')) return;
-  if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
-  await window.fbSignOut(window.auth);
-}
-
-function showApp(){
-  document.getElementById('loginScreen').classList.remove('active');
-  document.getElementById('appContainer').style.display = 'block';
-  document.getElementById('appMenu').style.display = 'flex';
-  document.getElementById('syncBadge').style.display = 'block';
-}
-
-function showLogin(){
-  document.getElementById('loginScreen').classList.add('active');
-  document.getElementById('appContainer').style.display = 'none';
-  document.getElementById('appMenu').style.display = 'none';
-  document.getElementById('syncBadge').style.display = 'none';
-}
-
-function updateSyncBadge(state){
-  const b = document.getElementById('syncBadge');
-  if (!b) return;
-  if (state === 'online') { b.className = 'sync-badge'; b.textContent = '☁️ Синхронизировано'; b.style.opacity = '1'; setTimeout(() => { b.style.opacity = '0.4'; }, 2000); }
-  else if (state === 'syncing') { b.className = 'sync-badge syncing'; b.style.opacity = '1'; b.textContent = '⏳ Сохранение...'; }
-  else { b.className = 'sync-badge offline'; b.style.opacity = '1'; b.textContent = '⚠️ Нет связи'; }
-}
-
-function renderAll(){ renderMe(); renderPeople(); renderPayments(); renderProfit(); renderStats(); }
-
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
+function loadArchive(){try{return JSON.parse(localStorage.getItem(ARCHIVE_KEY)||'{}')}catch(e){return{}}}
+function saveArchive(a){localStorage.setItem(ARCHIVE_KEY,JSON.stringify(a))}
 function loadDefaults(){try{return JSON.parse(localStorage.getItem(DEFAULTS_KEY)||'{}')}catch(e){return{}}}
 function getDefaults(){return loadDefaults()}
+
 function saveDefaults(){
   const rate=parseFloat(document.getElementById('me-default-rate').value)||0;
   const kg=parseFloat(document.getElementById('me-default-kg').value)||0;
@@ -526,13 +431,7 @@ function calcPerson(p){
   let status='debt';
   if(paid>=total-0.01)status='paid';
   else if(paid>0.01)status='partial';
-  let overdue=false;
-  if(status!=='paid'&&(p.orders||[]).length){
-    const lastDate=Math.max(...(p.orders||[]).map(o=>new Date(o.date||0).getTime()));
-    const days=(Date.now()-lastDate)/(1000*60*60*24);
-    if(days>30)overdue=true;
-  }
-  return{goods,deliv,total,yuan,weight,cost,profit:total-cost,paid,remain,overpay,status,overdue,ordersCount:(p.orders||[]).length};
+  return{goods,deliv,total,yuan,weight,cost,profit:total-cost,paid,remain,overpay,status,ordersCount:(p.orders||[]).length};
 }
 
 function calcTotals(data){
@@ -542,7 +441,7 @@ function calcTotals(data){
     goodsByn+=c.goods;delivByn+=c.deliv;totalByn+=c.total;
     totalYuan+=c.yuan;totalWeight+=c.weight;totalPaid+=c.paid;totalCost+=c.cost;
   });
-  return{totalByn,goodsByn,delivByn,totalYuan,totalWeight,totalPaid,totalCost,totalRemain:totalByn-totalPaid,totalProfit:totalByn-totalCost};
+  return{totalByn,goodsByn,delivByn,totalYuan,totalWeight,totalPaid,totalCost,totalRemain:Math.max(0,totalByn-totalPaid),totalProfit:totalByn-totalCost};
 }
 
 function switchScreen(name){
@@ -554,7 +453,7 @@ function switchScreen(name){
   if(name==='me')renderMe();
   if(name==='people')renderPeople();
   if(name==='payments')renderPayments();
-  if(name==='profit')renderProfit();
+  if(name==='archive')renderArchive();
   if(name==='stats')renderStats();
 }
 function goBack(){switchScreen('people')}
@@ -805,17 +704,19 @@ function deleteOrder(personId,orderId){
 function renderPayments(){
   const data=load();const t=calcTotals(data);
   document.getElementById('totalPaid').textContent=t.totalPaid.toFixed(2)+' BYN';
-  const remainDisplay=Math.max(0,t.totalRemain);const overpayTotal=Math.max(0,-t.totalRemain);
-  const remainEl=document.getElementById('totalRemain');
-  if(overpayTotal>0.01)remainEl.textContent='Осталось: 0.00 (переплата '+overpayTotal.toFixed(2)+')';
-  else remainEl.textContent='Осталось: '+remainDisplay.toFixed(2)+' BYN';
+  document.getElementById('totalRemain').textContent='Осталось: '+t.totalRemain.toFixed(2)+' BYN';
 
   let cP=0,cPa=0,cD=0,cO=0;
-  data.forEach(p=>{const c=calcPerson(p);if(c.status==='paid')cP++;else if(c.status==='partial')cPa++;else cD++;if(c.overdue)cO++;});
+  data.forEach(p=>{
+    const c=calcPerson(p);
+    if(c.status==='paid')cP++;
+    else if(c.status==='partial')cPa++;
+    else cD++;
+  });
   document.getElementById('countPaid').textContent=cP;
   document.getElementById('countPartial').textContent=cPa;
   document.getElementById('countDebt').textContent=cD;
-  document.getElementById('countOverdue').textContent=cO;
+  document.getElementById('countOverdue').textContent='—';
 
   const el=document.getElementById('paymentsList');
   if(!data.length){el.innerHTML='<div class="empty">Нет записей</div>';return}
@@ -835,37 +736,161 @@ function renderPayments(){
   }).join('');
 }
 
-function renderProfit(){
-  const data=load();const t=calcTotals(data);
-  document.getElementById('totalIncome').textContent=t.totalByn.toFixed(0);
-  document.getElementById('totalExpense').textContent=t.totalCost.toFixed(0);
-  document.getElementById('totalProfit').textContent=t.totalProfit.toFixed(0);
-  const months={};
-  data.forEach(p=>(p.orders||[]).forEach(o=>{
-    if(!o.date)return;const m=o.date.slice(0,7);const c=calcOrder(o);
-    if(!months[m])months[m]={profit:0,income:0,cost:0};
-    months[m].income+=c.total;months[m].cost+=c.cost;months[m].profit+=c.profit;
-  }));
-  const mKeys=Object.keys(months).sort().reverse();
-  const monthNames=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-  document.getElementById('profitMonthly').innerHTML=mKeys.length?mKeys.map(k=>{
-    const p=k.split('-');const m=months[k];const color=m.profit>=0?'var(--green)':'var(--red)';
-    return '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'+
-      '<div class="month-label">'+monthNames[parseInt(p[1])-1]+' '+p[0]+'</div>'+
-      '<div style="display:flex;justify-content:space-between;font-size:13px;">'+
-        '<span style="color:var(--text2);">Доход: <b style="color:var(--green);">'+m.income.toFixed(2)+'</b></span>'+
-        '<span style="color:var(--text2);">Расход: <b style="color:var(--red);">'+m.cost.toFixed(2)+'</b></span>'+
-      '</div>'+
-      '<div style="text-align:right;font-weight:800;color:'+color+';margin-top:4px;">Прибыль: '+m.profit.toFixed(2)+' BYN</div></div>';
-  }).join(''):'<div class="empty" style="padding:20px;font-size:13px;">Нет данных</div>';
+// ===== ЗАКРЫТИЕ МЕСЯЦА =====
+function closeMonth(){
+  const data=load();
+  if(!data.length){showModal('ℹ️','Нет данных для закрытия');return}
+
+  const now=new Date();
+  const year=now.getFullYear();
+  const month=now.getMonth();
+  const key=year+'-'+String(month+1).padStart(2,'0');
+  const monthName=MONTH_NAMES[month]+' '+year;
+
+  const t=calcTotals(data);
+
+  if(!confirm('Закрыть ' + monthName + '?\n\n' + data.length + ' человек уйдут в историю.\nСумма: ' + t.totalByn.toFixed(2) + ' BYN\n\nТекущий список обнулится.')) return;
+
+  const archive=loadArchive();
+  // Если за этот месяц уже есть — добавим суффикс
+  let finalKey=key;
+  let i=2;
+  while(archive[finalKey]){
+    finalKey=key+'_'+i;
+    i++;
+  }
+
+  archive[finalKey]={
+    monthName: monthName,
+    closedAt: new Date().toISOString(),
+    people: JSON.parse(JSON.stringify(data)),
+    totalByn: t.totalByn,
+    totalYuan: t.totalYuan,
+    totalWeight: t.totalWeight,
+    totalPaid: t.totalPaid,
+    totalProfit: t.totalProfit,
+    peopleCount: data.length
+  };
+  saveArchive(archive);
+  save([]);
+  showModal('✅ Готово','Месяц «'+monthName+'» закрыт.\nВсе данные в Истории 📚');
+  renderAll();
 }
 
+function renderArchive(){
+  const archive=loadArchive();
+  const keys=Object.keys(archive).sort().reverse();
+  const el=document.getElementById('archiveList');
+  if(!keys.length){
+    el.innerHTML='<div class="empty">История пуста.<br>Закрой первый месяц кнопкой выше ⬆️</div>';
+    return;
+  }
+  el.innerHTML=keys.map(k=>{
+    const a=archive[k];
+    return '<div class="archive-card" onclick="openArchive(\''+k+'\')">'+
+      '<div class="head"><div class="month-name">📅 '+a.monthName+'</div>'+
+      '<div class="month-total">'+a.totalByn.toFixed(2)+' BYN</div></div>'+
+      '<div class="stats">'+
+        '<span><b>'+a.peopleCount+'</b> человек</span>'+
+        '<span><b>¥'+a.totalYuan.toFixed(2)+'</b></span>'+
+        '<span><b>'+a.totalWeight.toFixed(2)+'</b> кг</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function openArchive(key){
+  const archive=loadArchive();
+  const a=archive[key];
+  if(!a)return;
+  currentArchiveKey=key;
+
+  const peopleHtml=a.people.map(p=>{
+    const c=calcPerson(p);
+    return '<div class="order-item" style="cursor:pointer;" onclick="openArchivePerson(\''+key+'\','+p.id+')">'+
+      '<div class="head"><div class="date">'+p.avatar+' '+escapeHtml(p.name)+'</div>'+
+      '<div class="order-total">'+c.total.toFixed(2)+' BYN</div></div>'+
+      '<div class="row-small">'+c.ordersCount+' заказ(ов) · '+c.weight.toFixed(2)+' кг · ¥'+c.yuan.toFixed(2)+'</div>'+
+      '<div class="row-small">Оплачено: '+c.paid.toFixed(2)+' · Остаток: '+c.remain.toFixed(2)+' BYN</div>'+
+    '</div>';
+  }).join('') || '<div class="empty">Пусто</div>';
+
+  document.getElementById('archiveDetails').innerHTML=
+    '<div class="total">'+
+      '<div class="lbl">📅 '+a.monthName+'</div>'+
+      '<div class="val">'+a.totalByn.toFixed(2)+' BYN</div>'+
+      '<div class="sub">¥'+a.totalYuan.toFixed(2)+' · '+a.totalWeight.toFixed(2)+' кг · '+a.peopleCount+' человек</div>'+
+    '</div>'+
+    '<div class="profit-bar">'+
+      '<div class="pb income"><span class="v">'+a.totalPaid.toFixed(0)+'</span><span class="l">Получено</span></div>'+
+      '<div class="pb profit"><span class="v">'+a.totalProfit.toFixed(0)+'</span><span class="l">Прибыль</span></div>'+
+    '</div>'+
+    '<div class="form"><h2>👥 Люди за месяц</h2>'+peopleHtml+'</div>';
+
+  switchScreen('archive-view');
+  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  const mi=document.querySelector('.menu-item[data-screen="archive"]'); if(mi)mi.classList.add('active');
+}
+
+function openArchivePerson(key, personId){
+  const a=loadArchive()[key];
+  if(!a)return;
+  const p=a.people.find(x=>x.id===personId);
+  if(!p)return;
+  const c=calcPerson(p);
+
+  const ordersHtml=(p.orders||[]).length?(p.orders||[]).map(o=>{
+    const co=calcOrder(o);
+    const stIco=STATUS_ICONS[o.status||'ordered'];
+    return '<div class="order-item">'+
+      '<div class="head"><div class="date">'+(o.date?new Date(o.date).toLocaleDateString('ru-RU'):'без даты')+'</div>'+
+      '<div class="order-total">'+co.total.toFixed(2)+' BYN</div></div>'+
+      '<div style="margin-bottom:6px;"><span class="status-badge status-'+(o.status||'ordered')+'">'+stIco+'</span></div>'+
+      (o.items?'<div class="row-small">📦 '+escapeHtml(o.items)+'</div>':'')+
+      '<div class="row-small">⚖️ '+(o.weight||0).toFixed(2)+' кг × '+o.kgrate+' = '+co.deliv.toFixed(2)+' BYN</div>'+
+      '<div class="row-small">💴 ¥'+(o.yuan||0).toFixed(2)+' × '+o.rate+' = '+co.goods.toFixed(2)+' BYN</div></div>';
+  }).join(''):'<div class="empty" style="padding:20px;font-size:13px;">Заказов нет</div>';
+
+  document.getElementById('archiveDetails').innerHTML=
+    '<div class="profile-head">'+
+      '<div class="avatar-big">'+p.avatar+'</div>'+
+      '<div class="name">'+escapeHtml(p.name)+'</div>'+
+      (p.phone?'<div class="contact">📞 '+escapeHtml(p.phone)+'</div>':'')+
+      (p.telegram?'<div class="contact">💬 '+escapeHtml(p.telegram)+'</div>':'')+
+    '</div>'+
+    '<div class="total-big"><div class="lbl">Итого за месяц</div><div class="val">'+c.total.toFixed(2)+' BYN</div></div>'+
+    '<div class="stats-grid">'+
+      '<div class="stat weight"><span class="val">'+c.weight.toFixed(2)+' кг</span><span class="lbl">Вес</span></div>'+
+      '<div class="stat yuan"><span class="val">¥'+c.yuan.toFixed(2)+'</span><span class="lbl">Юани</span></div>'+
+      '<div class="stat goods"><span class="val">'+c.paid.toFixed(2)+'</span><span class="lbl">Оплачено</span></div>'+
+      '<div class="stat deliv"><span class="val">'+c.remain.toFixed(2)+'</span><span class="lbl">Остаток</span></div>'+
+    '</div>'+
+    '<div class="form"><h2>📦 Заказы ('+(p.orders||[]).length+')</h2>'+ordersHtml+'</div>'+
+    '<button class="ghost" onclick="openArchive(\''+key+'\')">← Назад к '+a.monthName+'</button>';
+
+  switchScreen('archive-view');
+  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  const mi=document.querySelector('.menu-item[data-screen="archive"]'); if(mi)mi.classList.add('active');
+}
+
+function renderAll(){ renderMe(); renderPeople(); renderPayments(); renderArchive(); renderStats(); }
+
 function renderStats(){
-  const data=load();const t=calcTotals(data);
+  const data=load();
+  const archive=loadArchive();
+  // Собираем все данные — текущие + из архивов
+  let allPeople=[];
+  data.forEach(p=>allPeople.push(p));
+  Object.keys(archive).forEach(k=>{
+    (archive[k].people||[]).forEach(p=>allPeople.push(p));
+  });
+
+  const t=calcTotals(allPeople);
   document.getElementById('statsTotal').textContent=t.totalByn.toFixed(2)+' BYN';
   document.getElementById('statsSub').textContent='¥'+t.totalYuan.toFixed(2)+' · '+t.totalWeight.toFixed(2)+' кг';
+
   const months={};
-  data.forEach(p=>(p.orders||[]).forEach(o=>{
+  allPeople.forEach(p=>(p.orders||[]).forEach(o=>{
     if(!o.date)return;const m=o.date.slice(0,7);const c=calcOrder(o);
     if(!months[m])months[m]={total:0,count:0};
     months[m].total+=c.total;months[m].count++;
@@ -880,19 +905,21 @@ function renderStats(){
   }).join(''):'<div class="empty" style="padding:20px;font-size:13px;">Пока нет данных</div>';
 
   let all=[];
-  data.forEach(p=>(p.orders||[]).forEach(o=>all.push({person:p,order:o})));
+  allPeople.forEach(p=>(p.orders||[]).forEach(o=>all.push({person:p,order:o})));
   all.sort((a,b)=>(b.order.date||'').localeCompare(a.order.date||''));
   document.getElementById('allOrders').innerHTML=all.length?all.slice(0,50).map(x=>{
     const c=calcOrder(x.order);
-    return '<div class="order-item" onclick="openPerson('+x.person.id+')">'+
+    return '<div class="order-item">'+
       '<div class="head"><div class="date">'+(x.order.date?new Date(x.order.date).toLocaleDateString('ru-RU'):'—')+' · '+x.person.avatar+' '+escapeHtml(x.person.name)+'</div>'+
       '<div class="order-total">'+c.total.toFixed(2)+' BYN</div></div></div>';
   }).join(''):'<div class="empty" style="padding:20px;font-size:13px;">Заказов нет</div>';
 }
 
 function exportBackup(){
-  const data=load();const def=loadDefaults();
-  const backup={version:6,exported:new Date().toISOString(),data,defaults:def};
+  const data=load();
+  const archive=loadArchive();
+  const def=loadDefaults();
+  const backup={version:7,exported:new Date().toISOString(),data,archive,defaults:def};
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='uchet-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();
@@ -905,8 +932,12 @@ function importBackup(event){
     try{
       const b=JSON.parse(e.target.result);
       if(!b.data||!Array.isArray(b.data))throw new Error('Неверный формат');
-      if(!confirm('Заменить все данные?'))return;
-      save(b.data);renderAll();showModal('✅','Загружено: '+b.data.length+' человек');
+      if(!confirm('Заменить все данные?\nТекущие: '+load().length+' человек\nВ файле: '+b.data.length+' человек'))return;
+      save(b.data);
+      if(b.archive) saveArchive(b.archive);
+      if(b.defaults) localStorage.setItem(DEFAULTS_KEY,JSON.stringify(b.defaults));
+      renderAll();
+      showModal('✅','Загружено: '+b.data.length+' человек + '+(b.archive?Object.keys(b.archive).length:0)+' архивов');
     }catch(err){showModal('❌','Ошибка: '+err.message)}
   };
   reader.readAsText(file);event.target.value='';
@@ -929,52 +960,7 @@ function plural(n,one,few,many){const m10=n%10,m100=n%100;if(m10===1&&m100!==11)
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 loadTheme();
-
-// Старт
-const waitAuth = setInterval(() => {
-  if (window.fbReady && window.auth) {
-    clearInterval(waitAuth);
-    console.log('🚀 Firebase готов');
-    window.fbOnAuth(window.auth, (user) => {
-      if (user) {
-        console.log('👤 Вошёл:', user.email);
-        currentUser = user;
-        showApp();
-        document.getElementById('userEmailLabel').textContent = user.email;
-        document.getElementById('userAvatarLetter').textContent = (user.email[0] || '?').toUpperCase();
-
-        if (unsubSnapshot) unsubSnapshot();
-        unsubSnapshot = window.fsOnSnapshot(
-          window.fsDoc(window.db, "users", user.uid),
-          (snap) => {
-            if (snap.exists()) {
-              const d = snap.data();
-              const cloudPeople = d.people || [];
-              const cloudTime = d.updated || 0;
-              if (cloudTime > lastLocalUpdate) {
-                userData = cloudPeople;
-                lastLocalUpdate = cloudTime;
-                renderAll();
-                console.log('☁️ Из облака:', cloudPeople.length);
-              }
-            } else {
-              userData = [];
-              renderAll();
-            }
-            updateSyncBadge('online');
-          },
-          (err) => { console.error(err); updateSyncBadge('offline'); }
-        );
-      } else {
-        console.log('🔐 Не авторизован');
-        currentUser = null;
-        userData = [];
-        if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
-        showLogin();
-      }
-    });
-  }
-}, 200);
+renderAll();
 </script>
 </body>
 </html>
